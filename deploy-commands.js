@@ -28,18 +28,11 @@ const testCommands = [
         .setName("color")
         .setDescription("(Test) Set your color")
         .addSubcommand(subcommand => subcommand
-            .setName("rgb")
-            .setDescription("(Test) Set your color with Red, Green, and Blue values")
-            .addIntegerOption(option => option.setName("red").setDescription("How much red").setRequired(true))
-            .addIntegerOption(option => option.setName("green").setDescription("How much green").setRequired(true))
-            .addIntegerOption(option => option.setName("blue").setDescription("How much blue").setRequired(true))
+            .setName('reset')
+            .setDescription("(Test) Reset your color to your default")
         )
         .addSubcommand(subcommand => subcommand
-            .setName('hex')
-            .setDescription("(Test) Set your color a Hexadecimal Value")
-            .addStringOption(option => option.setName("hex").setDescription("The Hex value you want").setRequired(true))
-        ),
-    new SlashCommandBuilder().setName('cleancolors').setDescription('(Test) Removes any unused color role')
+        )
 ]
 
 const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
@@ -47,6 +40,9 @@ const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
 rest.put(Routes.applicationCommands(process.env.CLIENTID), { body: commands })
 	.then(() => console.log('Successfully registered global application commands.'))
 	.catch(console.error);
-rest.put(Routes.applicationGuildCommands(process.env.CLIENTID, "770338797543096381"), { body: commands })
-    .then(() => console.log('Successfully registered testing application commands.'))
+rest.put(Routes.applicationGuildCommands(process.env.CLIENTID, "770338797543096381"), { body: testCommands })
+    .then(() => console.log('Successfully registered testing application commands. (AnnoyingDiscordBot)'))
+    .catch(console.error);
+rest.put(Routes.applicationGuildCommands(process.env.CLIENTID, "935626011264053308"), { body: testCommands })
+    .then(() => console.log('Successfully registered testing application commands. (ColorBot)'))
     .catch(console.error);

@@ -1,3 +1,5 @@
+const colors = require('../colors.json');
+
 function componentToHex(c) {
     var hex = c.toString(16);
     return hex.length == 1 ? "0" + hex : hex;
@@ -27,7 +29,8 @@ exports.slashrun = async (client, interaction) => {
     let options = interaction.options;
     // console.log(roles.cache);
 
-    let hex;
+    let hex, newColor;
+    let skipAssign = false;
     switch (options.getSubcommand())
     {
         case "rgb":
@@ -43,7 +46,7 @@ exports.slashrun = async (client, interaction) => {
             if (b < 0) { r = 0; }
             if (b > 255) { r = 255; }
 
-            console.log(`RGB: (${r}, ${g}, ${b})`);
+            newColor = `rgb(${r}, ${g}, ${b})`
             hex = rgbToHex(r, g, b);
             break;
         case "hex":
@@ -51,21 +54,25 @@ exports.slashrun = async (client, interaction) => {
             temp_hex = options.getString("hex");
             if (temp_hex.charAt(0) != '#') { temp_hex = "#" + temp_hex; }
             if (temp_hex.match(hexRegex)) {
-                hex = temp_hex;
+                newColor = temp_hex;
+                hex = newColor;
             }
             else {
-                interaction.reply(`${options.getString("hex")} is not a valid color`);
+                return interaction.reply(`${options.getString("hex")} is not a valid color`);
             }
             break;
-        default:
-            interaction.reply(`Subcommand "${options.getSubcommand()}" is not implemented.`)
             break;
+        default:
+            return interaction.reply(`Subcommand "${options.getSubcommand()}" is not implemented.`);
     }
     console.log("HEX: ", hex);
 
-    let newRole = roles.cache.find(r => r.name == hex);
-    if (newRole === undefined) {
-        newRole = await roles.create({name:hex,color:hex,mentionable:false,hoist:false,position:botRole.position,reason:"New color role needed"})
+    let newRole;
+    if (!skipAssign) {
+        newRole = roles.cache.find(r => r.name == hex);
+        if (newRole === undefined) {
+            newRole = await roles.create({name:hex,color:hex,mentionable:false,hoist:false,position:botRole.position,reason:"New color role needed"})
+        }
     }
     let oldRoles = []
     interaction.member.roles.cache.forEach(r => {
@@ -79,9 +86,12 @@ exports.slashrun = async (client, interaction) => {
     })
     console.log(oldRoles);
     if (oldRoles.length != 0) { await interaction.member.roles.remove(oldRoles, "Replacing this member's color role").then(() => {}, error => {console.log(error)}); }
-    await interaction.member.roles.add(newRole, "Replacing this member's color role");
-
-    interaction.reply(`Your color has been changed to \`${hex}\``);
+    if (!skipAssign) {
+        await interaction.member.roles.add(newRole, "Replacing this member's color role");
+        interaction.reply(`Your color has been changed to \`${newColor}\``);
+    } else {
+        interaction.reply("Your color has been reset");
+    }
 }
 
 exports.help = {
