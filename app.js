@@ -1,6 +1,5 @@
 const { prefix } = require("./config.json"); //Not needed?
 const { Client, Intents, Collection } = require('discord.js');
-const sqlite = require('sqlite');
 const fs = require('fs');
 require('dotenv').config()
 
