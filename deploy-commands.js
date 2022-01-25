@@ -20,17 +20,6 @@ const commands = [
             .setName('hex')
             .setDescription("Set your color a Hexadecimal Value")
             .addStringOption(option => option.setName("hex").setDescription("The Hex value you want").setRequired(true))
-        ),
-    new SlashCommandBuilder().setName('cleancolors').setDescription('Removes any unused color role')
-].map(command => command.toJSON());
-
-const testCommands = [
-    new SlashCommandBuilder()
-        .setName("color")
-        .setDescription("(Test) Set your color")
-        .addSubcommand(subcommand => subcommand
-            .setName('reset')
-            .setDescription("(Test) Reset your color to your default")
         )
         .addSubcommand(subcommand => subcommand
             .setName('named')
@@ -44,6 +33,17 @@ const testCommands = [
                 // });
             )
         )
+        .addSubcommand(subcommand => subcommand
+            .setName('reset')
+            .setDescription("(Test) Reset your color to your default")
+        ),
+    new SlashCommandBuilder().setName('cleancolors').setDescription('Removes any unused color role')
+].map(command => command.toJSON());
+
+const testCommands = [
+    new SlashCommandBuilder()
+        .setName("color")
+        .setDescription("(Test) Set your color")
 ]
 
 const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
