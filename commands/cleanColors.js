@@ -17,7 +17,7 @@ exports.run = async (client, guild) => {
 exports.msgrun = async (client, message, args) => {
     if (!message.inGuild()) { return message.reply("This only works in guilds"); }
     //Check for permission inside the guild
-    if (message.member.hasPermission("ADMINISTRATOR")) { return interaction.reply("You do not have permission to do this"); }
+    if (!message.member.permissions.has("MANAGE_ROLES")) { return interaction.reply("You do not have permission to do this"); }
 
     this.run(client, message.guild).then(() => {
         message.reply("The colors have been cleaned up");
@@ -29,7 +29,7 @@ exports.msgrun = async (client, message, args) => {
 exports.slashrun = async (client, interaction) => {
     if (!interaction.inGuild()) { return interaction.reply("This only works in guilds"); }
     //Check for permission inside the guild
-    if (interaction.member.hasPermission("ADMINISTRATOR")) { return interaction.reply("You do not have permission to do this"); }
+    if (!interaction.member.permissions.has("MANAGE_ROLES")) { return interaction.reply("You do not have permission to do this"); }
 
     this.run(client, interaction.guild).then(() => {
         interaction.reply("The colors have been cleaned up");
