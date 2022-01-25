@@ -61,10 +61,23 @@ exports.slashrun = async (client, interaction) => {
                 return interaction.reply(`${options.getString("hex")} is not a valid color`);
             }
             break;
+        case "named":
+            newColor = options.getString("color");
+            let tempColor = colors[newColor.toUpperCase()];
+            console.log(tempColor);
+            if (tempColor !== undefined) {
+                hex = tempColor.hex;
+            } else {
+                return interaction.reply(`The color "${newColor}" is not a valid named html color`);
+            }
+            break;
+        case "reset":
+            skipAssign = true;
             break;
         default:
             return interaction.reply(`Subcommand "${options.getSubcommand()}" is not implemented.`);
     }
+    console.log("NewColor: ", newColor);
     console.log("HEX: ", hex);
 
     let newRole;

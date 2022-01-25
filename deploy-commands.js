@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
+// const colors = require('./colors.json');
 require('dotenv').config()
 
 const commands = [
@@ -32,6 +33,16 @@ const testCommands = [
             .setDescription("(Test) Reset your color to your default")
         )
         .addSubcommand(subcommand => subcommand
+            .setName('named')
+            .setDescription('(Test) use a named color')
+            .addStringOption(option => option
+                .setName("color")
+                .setDescription("The named color")
+                .setRequired(true)
+                // colors.forEach( color => {
+                //     option.addChoice(color.name, color.hex);
+                // });
+            )
         )
 ]
 
