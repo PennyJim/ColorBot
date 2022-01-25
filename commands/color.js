@@ -89,7 +89,7 @@ exports.slashrun = async (client, interaction) => {
     }
     let oldRoles = []
     interaction.member.roles.cache.forEach(r => {
-        if (r.name.match(hexRegex)) {
+        if (r.name.match(hexRegex) && r.id != newRole.id) {
             if (r.members.size != 1) {
                 oldRoles.push(r.id)
             } else {
