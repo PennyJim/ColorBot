@@ -18,7 +18,7 @@ exports.msgrun = async (client, message, args) => {
 
 exports.slashrun = async (client, interaction) => {
     // console.log(interaction)
-    console.log("Subcommand: ", interaction.options.getSubcommand())
+    console.log("Subcommand: ", interaction.options.getSubcommand(false))
     console.log("Options: ", interaction.options.data);
     
 
@@ -31,7 +31,7 @@ exports.slashrun = async (client, interaction) => {
 
     let hex, newColor;
     let skipAssign = false;
-    switch (options.getSubcommand())
+    switch (options.getSubcommand(false))
     {
         case "rgb":
             r = options.getInteger("red");
@@ -75,7 +75,7 @@ exports.slashrun = async (client, interaction) => {
             skipAssign = true;
             break;
         default:
-            return interaction.reply(`Subcommand "${options.getSubcommand()}" is not implemented.`);
+            return interaction.reply(`Subcommand "${options.getSubcommand(false)}" is not implemented.`);
     }
     console.log("NewColor: ", newColor);
     console.log("HEX: ", hex);
