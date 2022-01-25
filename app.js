@@ -50,7 +50,7 @@ client.on("interactionCreate", async interaction => {
     // }
 
     let command = client.commands.get(interaction.commandName);
-    try {
+    try { // WHY IS THIS TRY CATCH NOT CATCHING ANYTHING?
         if(command) command.slashrun(client, interaction);
     } catch (error) {
         console.log(error);

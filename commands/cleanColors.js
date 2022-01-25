@@ -29,7 +29,7 @@ exports.msgrun = async (client, message, args) => {
 exports.slashrun = async (client, interaction) => {
     if (!interaction.inGuild()) { return interaction.reply("This only works in guilds"); }
     //Check for permission inside the guild
-    if (message.member.hasPermission("ADMINISTRATOR")) { return interaction.reply("You do not have permission to do this"); }
+    if (interaction.member.hasPermission("ADMINISTRATOR")) { return interaction.reply("You do not have permission to do this"); }
 
     this.run(client, interaction.guild).then(() => {
         interaction.reply("The colors have been cleaned up");
