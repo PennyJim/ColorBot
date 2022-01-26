@@ -7,7 +7,7 @@
     "chalk": "^4.1.2",
     "date-fns": "^2.28.0",
     "discord-api-types": "^0.26.1",
-    "discord.js": "^13.6.0",
+    "discord.js": "^14.0.0-dev.1643155629.b640272",
     "dotenv": "^14.3.0"
   }
 }
