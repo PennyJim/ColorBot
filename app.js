@@ -1,4 +1,4 @@
-const { prefix } = require("./config.json"); //Not needed?
+const config = require("./config.json"); //Not needed?
 const logger = require("./logger.js");
 const { Client, Intents, Collection } = require('discord.js');
 const fs = require('fs');
@@ -26,15 +26,16 @@ client.once('ready', () => {
     logger.log(null, null, "Ready")
 })
 
-client.on('messageCreate', async message =>
-{
-    if(message.author.bot) return;
-    if(message.channel.type === "DM") return;
+client.on('messageCreate', async message => {
+    if(message.author.bot) return;                          //Ignore bots
+    if(message.channel.type === "DM") return;               //Ignore dms
+    if(message.content.charAt(0) != config.prefix) return;  //Ignore messages
+    if(!config.testServers.includes(message.guildId)) return;//Only listen to messages on a test server
 
     let args = message.content.split(" ");
     let cmd = args.shift()
 
-    let command = client.commands.get(cmd.slice(prefix.length));
+    let command = client.commands.get(cmd.slice(config.prefix.length));
     try {
         if(command) command.msgrun(client, message, args);
     } catch (error) {
@@ -44,12 +45,6 @@ client.on('messageCreate', async message =>
 
 client.on("interactionCreate", async interaction => {
     if (!interaction.isCommand()) return;
-    // if (interaction.user.id != "264489096188002338" && interaction.user.id != "214446390552690689") {
-    //   return await interaction.reply({content: "You are not authorized to do this.", ephemeral: true});
-    // }
-    // if (interaction.isGuild() && !interaction.member.hasPermission("ADMINISTRATOR")) {
-    //       return await interaction.reply({content: "You are not authorized to do this.", ephemeral: true});
-    // }
     // if (interaction.inGuild())
     // {
     //     let roles = interaction.guild.roles;
@@ -61,7 +56,7 @@ client.on("interactionCreate", async interaction => {
     
     let command = client.commands.get(interaction.commandName);
     logger.debug(interaction.guild, interaction.user, "Command:", interaction.commandName)
-    try { // WHY IS THIS TRY CATCH NOT CATCHING ANYTHING?
+    try {
         await interaction.guild.members.fetch();
         if(command) await command.slashrun(client, interaction);
     } catch (error) {

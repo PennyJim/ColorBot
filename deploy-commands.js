@@ -1,6 +1,8 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
+const logger = require('./logger.js');
+const { testServers } = require('./config.json');
 // const colors = require('./colors.json');
 require('dotenv').config()
 
@@ -36,24 +38,23 @@ const commands = [
         .addSubcommand(subcommand => subcommand
             .setName('reset')
             .setDescription("Reset your color to your default")
-        )
+        ),
+    new SlashCommandBuilder().setName('cleancolors').setDescription('Removes any unused color role')
 ].map(command => command.toJSON());
 
 const testCommands = [
     new SlashCommandBuilder()
         .setName("color")
-        .setDescription("(Test) Set your color"),
-    new SlashCommandBuilder().setName('cleancolors').setDescription('Removes any unused color role')
+        .setDescription("(Test) Set your color")
 ]
 
 const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
 
 rest.put(Routes.applicationCommands(process.env.CLIENTID), { body: commands })
 	.then(() => console.log('Successfully registered global application commands.'))
-	.catch(console.error);
-rest.put(Routes.applicationGuildCommands(process.env.CLIENTID, "770338797543096381"), { body: testCommands })
-    .then(() => console.log('Successfully registered testing application commands. (AnnoyingDiscordBot)'))
-    .catch(console.error);
-rest.put(Routes.applicationGuildCommands(process.env.CLIENTID, "935626011264053308"), { body: testCommands })
-    .then(() => console.log('Successfully registered testing application commands. (ColorBot)'))
-    .catch(console.error);
+	.catch(error => { logger.err(null, null, error) });
+for (const server in testServers) {
+    rest.put(Routes.applicationGuildCommands(process.env.CLIENTID, server), { body: testCommands })
+        .then(() => console.log('Successfully registered testing application commands.'))
+        .catch(error => { logger.err({id: server}, null, error) });
+}
