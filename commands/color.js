@@ -22,7 +22,7 @@ exports.slashrun = async (client, interaction) => {
     logger.debug(interaction.guild, interaction.member, "Subcommand:", interaction.options.getSubcommand(false))
     
 
-    if(!interaction.inGuild()) { interaction.reply("Has to be called in a server"); return;}
+    if(!interaction.inGuild()) { return interaction.reply({content: "Has to be called in a server", ephemeral: true});}
 
     let roles = interaction.guild.roles;
     let botRole = roles.botRoleFor(client.user);
@@ -58,7 +58,7 @@ exports.slashrun = async (client, interaction) => {
             }
             else {
                 logger.warn(interaction.guild, interaction.member, `${temp_hex} is not a valid color`)
-                return interaction.reply(`${temp_hex} is not a valid color`);
+                return interaction.reply({content: `${temp_hex} is not a valid color`, ephemeral: true});
             }
             break;
         case "named":
@@ -68,7 +68,7 @@ exports.slashrun = async (client, interaction) => {
             if (tempColor !== undefined) {
                 hex = tempColor.hex;
             } else {
-                return interaction.reply(`The color "${newColor}" is not a valid named html color`);
+                return interaction.reply({content: `The color "${newColor}" is not a valid named html color`, ephemeral: true});
             }
             break;
         case "reset":
@@ -76,10 +76,8 @@ exports.slashrun = async (client, interaction) => {
             break;
         default:
             logger.err(interaction.guild, interaction.member, `Subcommand "${options.getSubcommand(false)}" is not implemented.`);
-            return interaction.reply(`Subcommand "${options.getSubcommand(false)}" is not implemented.`);
+            return interaction.reply({content: `Subcommand "${options.getSubcommand(false)}" is not implemented.`, ephemeral: true});
     }
-    logger.debug(interaction.guild, interaction.member, "NewColor: ", chalk.hex(hex)(newColor));
-    logger.debug(interaction.guild, interaction.member, "HEX: ", chalk.hex(hex)(hex));
 
     let newRole;
     if (!skipAssign) {
@@ -106,9 +104,9 @@ exports.slashrun = async (client, interaction) => {
     }
     if (!skipAssign) {
         await interaction.member.roles.add(newRole, "Replacing this member's color role");
-        await interaction.reply(`Your color has been changed to \`${newColor}\``);
+        await interaction.reply({content: `Your color has been changed to \`${newColor}\``, ephemeral: true});
     } else {
-        await interaction.reply("Your color has been reset");
+        await interaction.reply({content: "Your color has been reset", ephemeral: true});
     }
 
     // let standardText = 'color: #ffffff;'

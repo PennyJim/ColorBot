@@ -45,10 +45,10 @@ client.on('messageCreate', async message =>
 client.on("interactionCreate", async interaction => {
     if (!interaction.isCommand()) return;
     // if (interaction.user.id != "264489096188002338" && interaction.user.id != "214446390552690689") {
-    //   return await interaction.reply("You are not authorized to do this.");
+    //   return await interaction.reply({content: "You are not authorized to do this.", ephemeral: true});
     // }
     // if (interaction.isGuild() && !interaction.member.hasPermission("ADMINISTRATOR")) {
-    //       return await interaction.reply("You are not authorized to do this.");
+    //       return await interaction.reply({content: "You are not authorized to do this.", ephemeral: true});
     // }
     if (interaction.inGuild())
     {
@@ -69,7 +69,7 @@ client.on("interactionCreate", async interaction => {
         if (interaction.replied) {
             // interaction.followUp(":x: Something has went wrong");
         } else {
-            await interaction.reply(":x: Something has went wrong");
+            await interaction.reply({content: ":x: Something has went wrong", ephemeral: true});
         }
     }
   });
