@@ -4,7 +4,7 @@ const { Client, Intents, Collection } = require('discord.js');
 const fs = require('fs');
 require('dotenv').config()
 
-const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS] });
+const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGES] });
 
 client.commands = new Collection();
 client.lastCleaned = {}
@@ -32,7 +32,7 @@ client.on('messageCreate', async message =>
     if(message.channel.type === "DM") return;
 
     let args = message.content.split(" ");
-    let cmd = messageArray.shift()
+    let cmd = args.shift()
 
     let command = client.commands.get(cmd.slice(prefix.length));
     try {

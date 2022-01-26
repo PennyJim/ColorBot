@@ -13,9 +13,9 @@ function rgbToHex(r, g, b) {
 let hexRegex = /^#[\da-f]{6}$/i
 
 exports.msgrun = async (client, message, args) => {
-    logger.debug(message.guild, message.member, message);
+    // logger.debug(message.guild, message.member, message);
     logger.debug(message.guild, message.member, args);
-    message.reply("Test");
+    message.reply({content: "Test", ephemeral: true});
 }
 
 exports.slashrun = async (client, interaction) => {
