@@ -5,11 +5,10 @@ exports.run = async (client, guild) => {
 
     let oldRoles = 0;
     (await guild.roles.fetch(null, {force: true})).forEach(r => {
-        if (r.name.match(hexRegex)/* && r.members.size == 0*/)
+        if (r.name.match(hexRegex) && r.members.size == 0)
         {
-            logger.debug(guild, null, "Name:", r.name, "Size:", r.members.size);
-            // logger.debug(guild, null, "Members:", r.members)
-            // r.delete("An unused color role");
+            logger.debug(guild, null, "Name:", r.name/*, "Size:", r.members.size*/);
+            r.delete("An unused color role");
             oldRoles++;
         }
     });

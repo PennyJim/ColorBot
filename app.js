@@ -53,7 +53,8 @@ client.on("interactionCreate", async interaction => {
     if (interaction.inGuild())
     {
         let roles = interaction.guild.roles;
-        (await roles.fetch(null, {force:true})).forEach(role => {
+        await interaction.guild.members.fetch();
+        (await roles.fetch()).forEach(role => {
             logger.debug(interaction.guild, null, "Name:", role.name, "Size:", role.members.size)
         });
     }
