@@ -81,6 +81,9 @@ exports.slashrun = async (client, interaction) => {
 
     let newRole;
     if (!skipAssign) {
+        logger.debug(interaction.guild, interaction.member, "NewColor: ", chalk.hex(hex)(newColor));
+        logger.debug(interaction.guild, interaction.member, "HEX: ", chalk.hex(hex)(hex));
+
         newRole = roles.cache.find(r => r.name == hex);
         if (newRole === undefined) {
             newRole = await roles.create({name:hex,color:hex,mentionable:false,hoist:false,position:botRole.position,reason:"New color role needed"})
@@ -88,8 +91,8 @@ exports.slashrun = async (client, interaction) => {
     }
     let oldRoles = []
     interaction.member.roles.cache.forEach(r => {
-        if (r.name.match(hexRegex) && r.id != newRole.id) {
-            if (r.members.size != 1) { //Always thinks it needs to delete
+        if (r.name.match(hexRegex) && (skipAssign || r.id != newRole.id)) {
+            if (r.members.size != 1) {
                 oldRoles.push(r.id)
             } else {
                 r.delete("A newly unused color role");
