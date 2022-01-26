@@ -6,6 +6,7 @@ require('dotenv').config()
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
 client.commands = new Collection();
+client.lastCleaned = {}
 // client.rolesdb = new sqlite.Database("./roles.db", (err) => {
 //     if (err) {
 //         console.log(err.message);
@@ -51,7 +52,7 @@ client.on("interactionCreate", async interaction => {
 
     let command = client.commands.get(interaction.commandName);
     try { // WHY IS THIS TRY CATCH NOT CATCHING ANYTHING?
-        if(command) command.slashrun(client, interaction);
+        if(command) await command.slashrun(client, interaction);
     } catch (error) {
         console.log(error);
         interaction.reply(":x: Something has went wrong");
