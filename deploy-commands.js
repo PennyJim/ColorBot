@@ -35,15 +35,15 @@ const commands = [
         )
         .addSubcommand(subcommand => subcommand
             .setName('reset')
-            .setDescription("(Test) Reset your color to your default")
-        ),
-    new SlashCommandBuilder().setName('cleancolors').setDescription('Removes any unused color role')
+            .setDescription("Reset your color to your default")
+        )
 ].map(command => command.toJSON());
 
 const testCommands = [
     new SlashCommandBuilder()
         .setName("color")
-        .setDescription("(Test) Set your color")
+        .setDescription("(Test) Set your color"),
+    new SlashCommandBuilder().setName('cleancolors').setDescription('Removes any unused color role')
 ]
 
 const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);

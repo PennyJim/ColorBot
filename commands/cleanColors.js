@@ -4,10 +4,12 @@ exports.run = async (client, guild) => {
     logger.log(guild, null, "Deleting old color roles");
 
     let oldRoles = 0;
-    guild.roles.cache.forEach(r => {
-        if (r.name.match(hexRegex) && r.members.size == 0)
+    (await guild.roles.fetch(null, {force: true})).forEach(r => {
+        if (r.name.match(hexRegex)/* && r.members.size == 0*/)
         {
-            r.delete("An unused color role");
+            logger.debug(guild, null, "Name:", r.name, "Size:", r.members.size);
+            // logger.debug(guild, null, "Members:", r.members)
+            // r.delete("An unused color role");
             oldRoles++;
         }
     });
@@ -28,12 +30,12 @@ exports.msgrun = async (client, message, args) => {
 exports.slashrun = async (client, interaction) => {
     if (!interaction.inGuild()) { return interaction.reply("This only works in guilds"); }
     //Check how long it's been
-    let now = Date.now()
-    if (client.lastCleaned[interaction.guild.id] !== undefined &&
-        now - client.lastCleaned[interaction.guild.id] < 10 * 60 * 1000) {
-            return interaction.reply("You can only do this once every 10 minutes");
-        }
-    client.lastCleaned[interaction.guild.id] = now;
+    // let now = Date.now()
+    // if (client.lastCleaned[interaction.guild.id] !== undefined &&
+    //     now - client.lastCleaned[interaction.guild.id] < 10 * 60 * 1000) {
+    //         return interaction.reply("You can only do this once every 10 minutes");
+    //     }
+    // client.lastCleaned[interaction.guild.id] = now;
     //Check for permission inside the guild
     if (!interaction.member.permissions.has("MANAGE_ROLES")) { return interaction.reply("You do not have permission to do this"); }
 
