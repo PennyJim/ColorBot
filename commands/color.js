@@ -1,4 +1,6 @@
+const chalk  = require('chalk');
 const colors = require('../colors.json');
+const logger = require("../logger.js");
 
 function componentToHex(c) {
     var hex = c.toString(16);
@@ -11,15 +13,13 @@ function rgbToHex(r, g, b) {
 let hexRegex = /^#[\da-f]{6}$/i
 
 exports.msgrun = async (client, message, args) => {
-    console.log(message);
-    console.log(args);
+    logger.debug(message.guild, message.member, message);
+    logger.debug(message.guild, message.member, args);
     message.reply("Test");
 }
 
 exports.slashrun = async (client, interaction) => {
-    // console.log(interaction)
-    console.log("Subcommand: ", interaction.options.getSubcommand(false))
-    console.log("Options: ", interaction.options.data);
+    logger.debug(interaction.guild, interaction.member, "Subcommand:", interaction.options.getSubcommand(false))
     
 
     if(!interaction.inGuild()) { interaction.reply("Has to be called in a server"); return;}
@@ -27,7 +27,6 @@ exports.slashrun = async (client, interaction) => {
     let roles = interaction.guild.roles;
     let botRole = roles.botRoleFor(client.user);
     let options = interaction.options;
-    // console.log(roles.cache);
 
     let hex, newColor;
     let skipAssign = false;
@@ -58,13 +57,14 @@ exports.slashrun = async (client, interaction) => {
                 hex = newColor;
             }
             else {
-                return interaction.reply(`${options.getString("hex")} is not a valid color`);
+                logger.warn(interaction.guild, interaction.member, `${temp_hex} is not a valid color`)
+                return interaction.reply(`${temp_hex} is not a valid color`);
             }
             break;
         case "named":
             newColor = options.getString("color");
             let tempColor = colors[newColor.toUpperCase()];
-            console.log(tempColor);
+            logger.debug(interaction.guild, interaction.member, tempColor);
             if (tempColor !== undefined) {
                 hex = tempColor.hex;
             } else {
@@ -75,10 +75,11 @@ exports.slashrun = async (client, interaction) => {
             skipAssign = true;
             break;
         default:
+            logger.err(interaction.guild, interaction.member, `Subcommand "${options.getSubcommand(false)}" is not implemented.`);
             return interaction.reply(`Subcommand "${options.getSubcommand(false)}" is not implemented.`);
     }
-    console.log("NewColor: ", newColor);
-    console.log("HEX: ", hex);
+    logger.debug(interaction.guild, interaction.member, "NewColor: ", chalk.hex(hex)(newColor));
+    logger.debug(interaction.guild, interaction.member, "HEX: ", chalk.hex(hex)(hex));
 
     let newRole;
     if (!skipAssign) {
@@ -90,21 +91,29 @@ exports.slashrun = async (client, interaction) => {
     let oldRoles = []
     interaction.member.roles.cache.forEach(r => {
         if (r.name.match(hexRegex) && r.id != newRole.id) {
-            if (r.members.size != 1) {
+            if (r.members.size != 1) { //Always thinks it needs to delete
                 oldRoles.push(r.id)
             } else {
                 r.delete("A newly unused color role");
             }
         }
     })
-    console.log(oldRoles);
-    if (oldRoles.length != 0) { await interaction.member.roles.remove(oldRoles, "Replacing this member's color role").then(() => {}, error => {console.log(error)}); }
+    logger.debug(interaction.guild, interaction.member, oldRoles);
+    if (oldRoles.length != 0) {
+        await interaction.member.roles.remove(oldRoles, "Replacing this member's color role")
+        .then(() => {},
+        error =>{logger.error(interaction.guild, interaction.member, error)});
+    }
     if (!skipAssign) {
         await interaction.member.roles.add(newRole, "Replacing this member's color role");
-        interaction.reply(`Your color has been changed to \`${newColor}\``);
+        await interaction.reply(`Your color has been changed to \`${newColor}\``);
     } else {
-        interaction.reply("Your color has been reset");
+        await interaction.reply("Your color has been reset");
     }
+
+    // let standardText = 'color: #ffffff;'
+    // let quietText = 'color: #999999;'
+    logger.log(interaction.guild, interaction.member, `Color changed to`, chalk.hex(hex)(hex));
 }
 
 exports.help = {

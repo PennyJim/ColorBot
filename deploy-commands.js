@@ -23,7 +23,7 @@ const commands = [
         )
         .addSubcommand(subcommand => subcommand
             .setName('named')
-            .setDescription('(Test) use a named color')
+            .setDescription('Use a named color')
             .addStringOption(option => option
                 .setName("color")
                 .setDescription("The named color")
