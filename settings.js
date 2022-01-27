@@ -5,10 +5,10 @@ let guildCache = {}; //Might be better uncached?
 
 //Drop Tables for testing purposes 
 db.prepare(`
-    DROP TABLE IF EXISTS guilds
+    DROP TABLE IF EXISTS banned_colors
 `).run()
 db.prepare(`
-    DROP TABLE IF EXISTS banned_colors
+    DROP TABLE IF EXISTS guilds
 `).run()
 
 //Make sure guilds exists
@@ -30,9 +30,8 @@ db.prepare(`
         b_value REAL NOT NULL,
         threshold REAL NOT NULL,
         guild_id CHAR(18) NOT NULL,
-        id INT UNIQUE NOT NULL,
         FOREIGN KEY (guild_id) REFERENCES guilds(guild_id),
-        PRIMARY KEY (guild_id, id)
+        PRIMARY KEY (guild_id, l_value, a_value, b_value)
     )
 `).run();
 
@@ -247,34 +246,34 @@ const addBannedColor = db.prepare(`
 `)
 const getBannedColors = db.prepare(`
     SELECT
-        *
+        l_value,
+        a_value,
+        b_value,
+        threshold,
+        rowid
     FROM
         banned_colors
     WHERE
         guild_id = $guild_id
+    ORDER BY
+        rowid ASC
 `).raw(true);
+const setBannedThreshold = db.prepare(`
+    UPDATE
+        banned_colors
+    SET
+        threshold = $new_value
+    WHERE
+        rowid = $id
+        AND guild_id = $guild_id
+`)
 const removeBannedColor = db.prepare(`
     DELETE FROM banned_colors
     WHERE
-        id = $id
+        rowid = $id
         AND guild_id = $guild_id
 `)
 
-exports.getBannedColors = (guild_id) => {
-    //Allow you to pass a GuildManager object
-    if (guild_id.id !== undefined) guild_id = guild_id.id;
-
-    return getBannedColors.get({guild_id: guild_id});
-}
-exports.removeBannedColor = (guild_id, id) => {
-    //Allow you to pass a GuildManager object
-    if (guild_id.id !== undefined) guild_id = guild_id.id;
-
-    return removeBannedColor.run({
-        guild_id: guild_id,
-        id: id
-    })
-}
 exports.addBannedColor = (guild_id, lab, threshhold) => {
     //Allow you to pass a GuildManager object
     if (guild_id.id !== undefined) guild_id = guild_id.id;
@@ -287,19 +286,56 @@ exports.addBannedColor = (guild_id, lab, threshhold) => {
         threshold: threshhold
     })
 }
+exports.getBannedColors = (guild_id) => {
+    //Allow you to pass a GuildManager object
+    if (guild_id.id !== undefined) guild_id = guild_id.id;
+
+    return getBannedColors.all({guild_id: guild_id});
+}
+exports.setBannedThreshold = (guild_id, id, newValue) => {
+    //Allow you to pass a GuildManager object
+    if (guild_id.id !== undefined) guild_id = guild_id.id;
+
+    return setBannedThreshold.run({
+        guild_id: guild_id,
+        id: id,
+        new_value: newValue
+    })
+}
+exports.removeBannedColor = (guild_id, id) => {
+    //Allow you to pass a GuildManager object
+    if (guild_id.id !== undefined) guild_id = guild_id.id;
+
+    return removeBannedColor.run({
+        guild_id: guild_id,
+        id: id
+    })
+}
 
 // Basic guilds for debug
 const devGuild = "770338797543096381"; //Dev Server
 const fasGuild = "934115296355160124"; //FAS Server
+console.log("Max Roles");
 console.log("Dev", exports.getMaxRoles(devGuild));
 console.log("default", exports.setDefaultMaxRoles(100));
 console.log("FAS", exports.getMaxRoles(fasGuild));
 console.log("Dev", exports.setMaxRoles(devGuild, 20));
 console.log("Dev", exports.getMaxRoles(devGuild));
 console.log("FAS", exports.getMaxRoles(fasGuild));
+console.log("Can Admin (Change) Settings");
 console.log("FAS", exports.setCanAdminSettings(fasGuild, false));
 console.log("Dev", exports.getCanAdminSettings(devGuild));
 console.log("FAS", exports.getCanAdminSettings(fasGuild));
+console.log("Banned Colors"); const colorSpace = require('./colorSpace.js');
+console.log("Dev", exports.addBannedColor(devGuild, colorSpace.hex2lab("#663399"), 10));
+console.log("FAS", exports.addBannedColor(fasGuild, colorSpace.hex2lab("#ff0000"), 15));
+console.log("Dev", exports.addBannedColor(devGuild, colorSpace.hex2lab("#ff0000"), 15));
+console.log("Dev", exports.addBannedColor(devGuild, colorSpace.hex2lab("#000000"), 5));
+console.log("FAS", exports.addBannedColor(fasGuild, colorSpace.hex2lab("#000000"), 5));
+console.log("Dev", exports.getBannedColors(devGuild));
+console.log("Dev", exports.setBannedThreshold(devGuild, 1, 5));
+console.log("Dev", exports.getBannedColors(devGuild));
+
 
 // let err = new Error();
 // delete err.stack;
