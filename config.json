@@ -2,5 +2,13 @@
     "prefix": "!",
     "testServers": [
         "770338797543096381"
-    ]
+    ],
+    "default": {
+        "guild_id": "Default",
+        "minrole": null,
+        "maxroles": 50,
+        "color_interval": 30,
+        "can_admin_settings": 1
+    },
+    "maxColorInterval": 60
 }

@@ -17,8 +17,7 @@ db.prepare(`
         guild_id CHARACTER(18) NOT NULL,
         minrole CHARACTER(18),
         maxroles INT,
-        color_pertime TINYINT,
-        color_time INT,
+        color_interval INT,
         can_admin_settings BOOLEAN,
         PRIMARY KEY (guild_id)
     ) WITHOUT ROWID
@@ -26,26 +25,25 @@ db.prepare(`
 //Make sure banned_colors exists
 db.prepare(`
     CREATE TABLE IF NOT EXISTS banned_colors (
-        guild_id CHAR(18) NOT NULL,
-        id INT UNIQUE NOT NULL,
         l_value REAL NOT NULL,
         a_value REAL NOT NULL,
         b_value REAL NOT NULL,
-        threshold REAL,
+        threshold REAL NOT NULL,
+        guild_id CHAR(18) NOT NULL,
+        id INT UNIQUE NOT NULL,
         FOREIGN KEY (guild_id) REFERENCES guilds(guild_id),
         PRIMARY KEY (guild_id, id)
     )
 `).run();
 
-
+//Statement for adding or getting guilds
 const addGuild = db.prepare(`
     INSERT INTO guilds
     VALUES (
         $guild_id,
         $minrole,
         $maxroles,
-        $color_pertime,
-        $color_time,
+        $color_interval,
         $can_admin_settings
     )
 `)
@@ -86,16 +84,17 @@ else {
     }
 }
 
+//Function for making a new guild entry in the database
 function newGuild(guild) {
     let defaultGuild = getGuild.get({ guild_id: defaultID })
     if (guild.minrole === undefined) {guild.minrole = defaultGuild.minrole}
     if (guild.maxroles === undefined) {guild.maxroles = defaultGuild.maxroles}
-    if (guild.color_pertime === undefined) {guild.color_pertime = defaultGuild.color_pertime}
-    if (guild.color_time === undefined) {guild.color_time = defaultGuild.color_time}
+    if (guild.color_interval === undefined) {guild.color_interval = defaultGuild.color_interval}
     if (guild.can_admin_settings === undefined) {guild.can_admin_settings = defaultGuild.can_admin_settings}
     addGuild.run(guild);
 }
 
+//Function to grab the guild entry either from cache or database
 function checkCache(guild_id) {
     let now = Date.now();
     let guild = guildCache[guild_id]
@@ -113,47 +112,194 @@ function checkCache(guild_id) {
     return guild;
 }
 
+//Getters
 exports.getMinRole = (guild_id) => {
     //Allow you to pass a GuildManager object
-    if (guild_id.id === undefined) guild_id = guild_id.id;
+    if (guild_id.id !== undefined) guild_id = guild_id.id;
     let guild = checkCache(guild_id);
 
     return guild.minrole;
 }
 exports.getMaxRoles = (guild_id) => {
     //Allow you to pass a GuildManager object
-    if (guild_id.id === undefined) guild_id = guild_id.id;
+    if (guild_id.id !== undefined) guild_id = guild_id.id;
     let guild = checkCache(guild_id);
 
     return guild.maxroles;
 }
-exports.getColorPerTime = (guild_id) => {
+exports.getColorInterval = (guild_id) => {
     //Allow you to pass a GuildManager object
-    if (guild_id.id === undefined) guild_id = guild_id.id;
+    if (guild_id.id !== undefined) guild_id = guild_id.id;
     let guild = checkCache(guild_id);
 
-    return guild.color_pertime;
+    return guild.color_interval;
 }
-exports.getColorPerTime = (guild_id) => {
+exports.getCanAdminSettings = (guild_id) => {
     //Allow you to pass a GuildManager object
-    if (guild_id.id === undefined) guild_id = guild_id.id;
+    if (guild_id.id !== undefined) guild_id = guild_id.id;
     let guild = checkCache(guild_id);
 
-    return guild.color_time;
+    return guild.can_admin_settings === 1;
 }
-exports.getColorPerTime = (guild_id) => {
+
+//Generic set statements
+function setDefaultValue(newValue, sqlStatement) {
+    return sqlStatement.run({
+        guild_id: defaultID,
+        new_value: newValue
+    });
+}
+function setValue(guild_id, newValue, sqlStatement) {
     //Allow you to pass a GuildManager object
-    if (guild_id.id === undefined) guild_id = guild_id.id;
-    let guild = checkCache(guild_id);
+    if (guild_id.id !== undefined) guild_id = guild_id.id;
+    //Don't cache the Default guild
+    if (guild_id == defaultID) return this.setDefaultValue(newValue, sqlStatement);
 
-    return guild.can_admin_settings;
+    let guild = checkCache(guild_id);
+    guild.minrole = newValue;
+    return sqlStatement.run({
+        guild_id: guild_id,
+        new_value: newValue
+    });
 }
 
+//Specific use cases of the generic set statements
+const setMinRole = db.prepare(`
+    UPDATE
+        guilds
+    SET
+        minrole = $new_value
+    WHERE
+        guild_id = $guild_id
+`)
+exports.setDefaultMinRole = (newValue) => {
+    return setDefaultValue(newValue, setMinRole);
+}
+exports.setMinRole = (guild_id, newValue) => {
+    return setValue(guild_id, newValue, setMinRole);
+}
 
+const setMaxRoles = db.prepare(`
+    UPDATE
+        guilds
+    SET
+        maxroles = $new_value
+    WHERE
+        guild_id = $guild_id
+`)
+exports.setDefaultMaxRoles = (newValue) => {
+    return setDefaultValue(newValue, setMaxRoles);
+}
+exports.setMaxRoles = (guild_id, newValue) => {
+    return setValue(guild_id, newValue, setMaxRoles);
+}
+
+const setColorInterval = db.prepare(`
+    UPDATE
+        guilds
+    SET
+        color_interval = $new_value
+    WHERE
+        guild_id = $guild_id
+`)
+exports.setDefaultColorInterval = (newValue) => {
+    return setDefaultValue(newValue, setColorInterval);
+}
+exports.setColorInterval = (guild_id, newValue) => {
+    return setValue(guild_id, newValue, setColorInterval);
+}
+
+const setCanAdminSettings = db.prepare(`
+    UPDATE
+        guilds
+    SET
+        can_admin_settings = $new_value
+    WHERE
+        guild_id = $guild_id
+`)
+exports.setDefaultCanAdminSettings = (newValue) => {
+    //So it can recieve booleans without it dying
+    if (newValue) {newValue = 1} else { newValue = 0}
+    return setDefaultValue(newValue, setCanAdminSettings);
+}
+exports.setCanAdminSettings = (guild_id, newValue) => {
+    //So it can recieve booleans without it dying
+    if (newValue) {newValue = 1} else { newValue = 0}
+    return setValue(guild_id, newValue, setCanAdminSettings);
+}
+
+//SQL statments for banned colors
+const addBannedColor = db.prepare(`
+    INSERT INTO banned_colors (
+        l_value,
+        a_value,
+        b_value,
+        threshold,
+        guild_id
+    )
+    VALUES (
+        $l_value,
+        $a_value,
+        $b_value,
+        $threshold,
+        $guild_id
+    )
+`)
+const getBannedColors = db.prepare(`
+    SELECT
+        *
+    FROM
+        banned_colors
+    WHERE
+        guild_id = $guild_id
+`).raw(true);
+const removeBannedColor = db.prepare(`
+    DELETE FROM banned_colors
+    WHERE
+        id = $id
+        AND guild_id = $guild_id
+`)
+
+exports.getBannedColors = (guild_id) => {
+    //Allow you to pass a GuildManager object
+    if (guild_id.id !== undefined) guild_id = guild_id.id;
+
+    return getBannedColors.get({guild_id: guild_id});
+}
+exports.removeBannedColor = (guild_id, id) => {
+    //Allow you to pass a GuildManager object
+    if (guild_id.id !== undefined) guild_id = guild_id.id;
+
+    return removeBannedColor.run({
+        guild_id: guild_id,
+        id: id
+    })
+}
+exports.addBannedColor = (guild_id, lab, threshhold) => {
+    //Allow you to pass a GuildManager object
+    if (guild_id.id !== undefined) guild_id = guild_id.id;
+
+    return addBannedColor.run({
+        guild_id: guild_id,
+        l_value: lab[0],
+        a_value: lab[1],
+        b_value: lab[2],
+        threshold: threshhold
+    })
+}
 
 // Basic guilds for debug
-newGuild({ guild_id: "770338797543096381" });
-newGuild({ guild_id: "934115296355160124" });
+const devGuild = "770338797543096381"; //Dev Server
+const fasGuild = "934115296355160124"; //FAS Server
+console.log("Dev", exports.getMaxRoles(devGuild));
+console.log("default", exports.setDefaultMaxRoles(100));
+console.log("FAS", exports.getMaxRoles(fasGuild));
+console.log("Dev", exports.setMaxRoles(devGuild, 20));
+console.log("Dev", exports.getMaxRoles(devGuild));
+console.log("FAS", exports.getMaxRoles(fasGuild));
+console.log("FAS", exports.setCanAdminSettings(fasGuild, false));
+console.log("Dev", exports.getCanAdminSettings(devGuild));
+console.log("FAS", exports.getCanAdminSettings(fasGuild));
 
 // let err = new Error();
 // delete err.stack;
@@ -172,15 +318,15 @@ CREATE TABLE IF NOT EXISTS guilds (
 ) WITHOUT ROWID;
 
 CREATE TABLE IF NOT EXISTS banned_colors (
-    guild_id CHAR(18) NOT NULL,
-    id INT UNIQUE NOT NULL,
     l_value REAL NOT NULL,
     a_value REAL NOT NULL,
     b_value REAL NOT NULL,
-    threshold REAL,
-    FOREIGN KEY (guild_id) REFERENCES guild(guild_id),
+    threshold REAL NOT NULL,
+    guild_id CHAR(18) NOT NULL,
+    id INT UNIQUE NOT NULL,
+    FOREIGN KEY (guild_id) REFERENCES guilds(guild_id),
     PRIMARY KEY (guild_id, id)
-) WITHOUT ROWID
+)
 
 */
 
