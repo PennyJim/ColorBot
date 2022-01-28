@@ -1,15 +1,11 @@
-const db = require('better-sqlite3')('settings.db');
+const db = require('better-sqlite3')('./data/settings.db');
 const config = require("./config.json");
 const defaultID = config.default.guild_id; //"Default           ";
 let guildCache = {}; //Might be better uncached?
 
 //Drop Tables for testing purposes 
-db.prepare(`
-    DROP TABLE IF EXISTS banned_colors
-`).run()
-db.prepare(`
-    DROP TABLE IF EXISTS guilds
-`).run()
+db.prepare(`DROP TABLE IF EXISTS banned_colors  `).run()
+db.prepare(`DROP TABLE IF EXISTS guilds         `).run()
 
 //Make sure guilds exists
 db.prepare(`
@@ -17,8 +13,7 @@ db.prepare(`
         guild_id CHARACTER(18) NOT NULL,
         minrole CHARACTER(18),
         maxroles INT,
-        color_interval INT,
-        can_admin_settings BOOLEAN,
+        can_admin_config BOOLEAN,
         PRIMARY KEY (guild_id)
     ) WITHOUT ROWID
 `).run();
@@ -42,8 +37,7 @@ const addGuild = db.prepare(`
         $guild_id,
         $minrole,
         $maxroles,
-        $color_interval,
-        $can_admin_settings
+        $can_admin_config
     )
 `)
 const getGuild = db.prepare(`
@@ -76,7 +70,7 @@ else {
                 maxroles = $maxroles,
                 color_pertime = $color_pertime,
                 color_ time = $color_time,
-                can_admin_settings = $can_admin_settings
+                can_admin_config = $can_admin_config
             WHERE
                     guild_id = $guild_id
         `).run(config.default);
@@ -88,8 +82,7 @@ function newGuild(guild) {
     let defaultGuild = getGuild.get({ guild_id: defaultID })
     if (guild.minrole === undefined) {guild.minrole = defaultGuild.minrole}
     if (guild.maxroles === undefined) {guild.maxroles = defaultGuild.maxroles}
-    if (guild.color_interval === undefined) {guild.color_interval = defaultGuild.color_interval}
-    if (guild.can_admin_settings === undefined) {guild.can_admin_settings = defaultGuild.can_admin_settings}
+    if (guild.can_admin_config === undefined) {guild.can_admin_config = defaultGuild.can_admin_config}
     addGuild.run(guild);
 }
 
@@ -126,19 +119,12 @@ exports.getMaxRoles = (guild_id) => {
 
     return guild.maxroles;
 }
-exports.getColorInterval = (guild_id) => {
+exports.getCanAdminConfig = (guild_id) => {
     //Allow you to pass a GuildManager object
     if (guild_id.id !== undefined) guild_id = guild_id.id;
     let guild = checkCache(guild_id);
 
-    return guild.color_interval;
-}
-exports.getCanAdminSettings = (guild_id) => {
-    //Allow you to pass a GuildManager object
-    if (guild_id.id !== undefined) guild_id = guild_id.id;
-    let guild = checkCache(guild_id);
-
-    return guild.can_admin_settings === 1;
+    return guild.can_admin_config === 1;
 }
 
 //Generic set statements
@@ -193,38 +179,23 @@ exports.setMaxRoles = (guild_id, newValue) => {
     return setValue(guild_id, newValue, setMaxRoles);
 }
 
-const setColorInterval = db.prepare(`
+const setCanAdminConfig = db.prepare(`
     UPDATE
         guilds
     SET
-        color_interval = $new_value
+        can_admin_config = $new_value
     WHERE
         guild_id = $guild_id
 `)
-exports.setDefaultColorInterval = (newValue) => {
-    return setDefaultValue(newValue, setColorInterval);
-}
-exports.setColorInterval = (guild_id, newValue) => {
-    return setValue(guild_id, newValue, setColorInterval);
-}
-
-const setCanAdminSettings = db.prepare(`
-    UPDATE
-        guilds
-    SET
-        can_admin_settings = $new_value
-    WHERE
-        guild_id = $guild_id
-`)
-exports.setDefaultCanAdminSettings = (newValue) => {
+exports.setDefaultCanAdminConfig = (newValue) => {
     //So it can recieve booleans without it dying
     if (newValue) {newValue = 1} else { newValue = 0}
-    return setDefaultValue(newValue, setCanAdminSettings);
+    return setDefaultValue(newValue, setCanAdminConfig);
 }
-exports.setCanAdminSettings = (guild_id, newValue) => {
+exports.setCanAdminConfig = (guild_id, newValue) => {
     //So it can recieve booleans without it dying
     if (newValue) {newValue = 1} else { newValue = 0}
-    return setValue(guild_id, newValue, setCanAdminSettings);
+    return setValue(guild_id, newValue, setCanAdminConfig);
 }
 
 //SQL statments for banned colors
@@ -344,12 +315,12 @@ console.log("Dev", exports.getBannedColors(devGuild));
 /*
 
 CREATE TABLE IF NOT EXISTS guilds (
-    guild_id CHARACTER(18) NOT NULL,
-    minrole CHARACTER(18),
+    guild_id CHAR(18) NOT NULL,
+    minrole CHAR(18),
     maxroles INT,
     color_pertime TINYINT,
     color_time INT,
-    can_admin_settings BOOLEAN,
+    can_admin_config BOOLEAN,
     PRIMARY KEY (guild_id)
 ) WITHOUT ROWID;
 
