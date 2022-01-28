@@ -15,7 +15,7 @@
         "color_per_hour": 30,
         "clean": "clean",
         "clean_max": 1,
-        "clean_per_hour": 3,
+        "clean_per_hour": 1,
         "config": "config",
         "config_max": 30,
         "config_per_hour": 20
