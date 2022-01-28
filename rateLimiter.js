@@ -194,6 +194,19 @@ const useBucket = db.prepare(`
         user_id = $user_id
         AND limit_id = $limit_id
 `)
+const tillNext = db.prepare(`
+    SELECT
+        strftime('%s',buc.last_token, lim.use_interval || ' minutes') AS next_token_seconds
+    FROM
+        buckets buc
+    JOIN
+        limits lim
+    ON
+        lim.limit_id = buc.limit_id
+    WHERE
+        buc.user_id = $user_id
+        AND buc.limit_id = $limit_id
+`)
 function checkLimit(user_id, limit_id) {
     let idObj = {user_id: user_id, limit_id: limit_id}
     updateBucket.run(idObj);
@@ -206,9 +219,9 @@ function useLimit(user_id, limit_id) {
     try {
         useBucket.run({user_id: user_id, limit_id: limit_id});
     } catch (error) {
-        return false;
+        return tillNext.get({user_id: user_id, limit_id: limit_id}).next_token_seconds;
     }
-    return true;
+    return false;
 }
 exports.useColor = (user_id) => {
     return useLimit(user_id, 1);
