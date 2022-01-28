@@ -219,6 +219,10 @@ exports.useClean = (user_id) => {
 exports.useConfig = (user_id) => {
     return useLimit(user_id, 3);
 }
+exports.close = () => {
+    db.close();
+    return delete exports;
+}
 
 //Table Setup
 /*

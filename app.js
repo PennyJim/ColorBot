@@ -1,19 +1,16 @@
+const { Client, Intents, Collection } = require('discord.js');
+const rateLimiter = require('./rateLimiter.js');
+const settings = require('./settings.js');
 const config = require("./config.json"); //Not needed?
 const logger = require("./logger.js");
-const { Client, Intents, Collection } = require('discord.js');
 const fs = require('fs');
 require('dotenv').config()
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGES] });
 
 client.commands = new Collection();
-client.lastCleaned = {}
-// client.rolesdb = new sqlite.Database("./roles.db", (err) => {
-//     if (err) {
-//         logger.err(null, null, err.message);
-//     }
-//     logger.log(null, null, "Connected to roles database");
-// })
+client.rateLimiter = rateLimiter;
+client.settings = settings;
 
 const commandFiles = fs.readdirSync('./commands/').filter(f => f.endsWith('.js'))
 for (const file of commandFiles) {
@@ -22,8 +19,23 @@ for (const file of commandFiles) {
     client.commands.set(props.help.name, props)
 }
 
+const closeFunc = () => {
+    logger.log(null, null, "Closing processes");
+    rateLimiter.close();
+    logger.log(null, null, "Rate limit database closed");
+    settings.close();
+    logger.log(null, null, "Settings database closed");
+    client.destroy();
+    logger.log(null, null, "Discord client destroyed");
+
+    logger.log(null, null, "Done");
+}
+process.on("SIGQUIT", closeFunc);
+process.on("SIGTERM", closeFunc);
+process.on("SIGINT", closeFunc);
+
 client.once('ready', () => {
-    logger.log(null, null, "Ready")
+    logger.log(null, null, "Ready");
 })
 
 client.on('messageCreate', async message => {
@@ -70,5 +82,6 @@ client.on("interactionCreate", async interaction => {
     }
   });
 
-//Token needed in config.json
+
+//Token needed in .env
 client.login(process.env.TOKEN);

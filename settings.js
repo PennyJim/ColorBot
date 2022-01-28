@@ -284,6 +284,10 @@ exports.removeBannedColor = (guild_id, id) => {
         id: id
     })
 }
+exports.close = () => {
+    db.close();
+    return delete exports;
+}
 /*
 
 CREATE TABLE IF NOT EXISTS guilds (
