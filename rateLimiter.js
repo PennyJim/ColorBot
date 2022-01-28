@@ -124,7 +124,7 @@ db.prepare(`
     END;
 `).run();
 //Make db use concurrent
-// db.pragma('journal_mode = WAL'); //TODO: Renable this
+db.pragma('journal_mode = WAL');
 
 
 const newBucket = db.prepare(`

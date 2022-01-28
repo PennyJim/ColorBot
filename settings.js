@@ -29,6 +29,8 @@ db.prepare(`
         PRIMARY KEY (guild_id, l_value, a_value, b_value)
     )
 `).run();
+//Make db use concurrent
+db.pragma('journal_mode = WAL');
 
 //Statement for adding or getting guilds
 const addGuild = db.prepare(`
