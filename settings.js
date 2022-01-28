@@ -284,36 +284,6 @@ exports.removeBannedColor = (guild_id, id) => {
         id: id
     })
 }
-
-// Basic guilds for debug
-const devGuild = "770338797543096381"; //Dev Server
-const fasGuild = "934115296355160124"; //FAS Server
-console.log("Max Roles");
-console.log("Dev", exports.getMaxRoles(devGuild));
-console.log("default", exports.setDefaultMaxRoles(100));
-console.log("FAS", exports.getMaxRoles(fasGuild));
-console.log("Dev", exports.setMaxRoles(devGuild, 20));
-console.log("Dev", exports.getMaxRoles(devGuild));
-console.log("FAS", exports.getMaxRoles(fasGuild));
-console.log("Can Admin (Change) Settings");
-console.log("FAS", exports.setCanAdminSettings(fasGuild, false));
-console.log("Dev", exports.getCanAdminSettings(devGuild));
-console.log("FAS", exports.getCanAdminSettings(fasGuild));
-console.log("Banned Colors"); const colorSpace = require('./colorSpace.js');
-console.log("Dev", exports.addBannedColor(devGuild, colorSpace.hex2lab("#663399"), 10));
-console.log("FAS", exports.addBannedColor(fasGuild, colorSpace.hex2lab("#ff0000"), 15));
-console.log("Dev", exports.addBannedColor(devGuild, colorSpace.hex2lab("#ff0000"), 15));
-console.log("Dev", exports.addBannedColor(devGuild, colorSpace.hex2lab("#000000"), 5));
-console.log("FAS", exports.addBannedColor(fasGuild, colorSpace.hex2lab("#000000"), 5));
-console.log("Dev", exports.getBannedColors(devGuild));
-console.log("Dev", exports.setBannedThreshold(devGuild, 1, 5));
-console.log("Dev", exports.getBannedColors(devGuild));
-
-
-// let err = new Error();
-// delete err.stack;
-// throw err;
-//Tables structure
 /*
 
 CREATE TABLE IF NOT EXISTS guilds (

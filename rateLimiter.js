@@ -220,24 +220,6 @@ exports.useConfig = (user_id) => {
     return useLimit(user_id, 3);
 }
 
-// Basic guilds for debug
-const devGuild = "770338797543096381"; //Dev Server
-checkLimit(devGuild, 1);
-checkLimit(devGuild, 2);
-checkLimit(devGuild, 3);
-console.log("Color:", exports.useColor(devGuild));
-console.log("Color:", exports.useColor(devGuild));
-console.log("Color:", exports.useColor(devGuild));
-console.log("Clean:", exports.useClean(devGuild));
-console.log("Clean:", exports.useClean(devGuild));
-console.log("Clean:", exports.useClean(devGuild));
-console.log("Config:", exports.useConfig(devGuild));
-console.log("Config:", exports.useConfig(devGuild));
-console.log("Config:", exports.useConfig(devGuild));
-// checkLimit(devGuild, 1);
-// checkLimit(devGuild, 2);
-// checkLimit(devGuild, 3);
-
 //Table Setup
 /*
 
