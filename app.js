@@ -1,3 +1,4 @@
+'use strict';
 const { Client, Intents, Collection } = require('discord.js');
 const rateLimiter = require('./rateLimiter.js');
 const settings = require('./settings.js');
@@ -65,9 +66,27 @@ client.on("interactionCreate", async interaction => {
     //         logger.debug(interaction.guild, null, "Name:", role.name, "Size:", role.members.size)
     //     });
     // }
-    
+
     let command = client.commands.get(interaction.commandName);
-    logger.debug(interaction.guild, interaction.user, "Command:", interaction.commandName)
+    logger.debug(interaction.guild, interaction.user, "Command:", command.help)
+
+    let limited = undefined;
+    if (command.help.limit) {
+        let id;
+        switch (command.help.limitScope) {
+            case "guild":
+                id = interaction.guildId;
+                break;
+            case "user":
+                id = interaction.user.id
+                break;
+            default:
+                throw new Error(`Uknown rate limit scope: ${command.help.limitScope}`);
+        }
+        limited = rateLimiter.useLimit(id, command.help.limit);
+    }
+    if (limited) return interaction.reply({content: `You can do this again: <t:${limited}:R>`, ephemeral: true});
+
     try {
         await interaction.guild.members.fetch();
         if(command) await command.slashrun(client, interaction);

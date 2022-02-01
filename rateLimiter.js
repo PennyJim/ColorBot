@@ -1,4 +1,5 @@
 const db = require('better-sqlite3')('./data/rateLimit.db');
+const SqliteError = require('better-sqlite3/lib/sqlite-error');
 // const settings = require('./settings.js'); //Might need?
 const config = require("./config.json");
 
@@ -126,6 +127,14 @@ db.prepare(`
 //Make db use concurrent
 db.pragma('journal_mode = WAL');
 
+const getLimitID = db.prepare(`
+    SELECT
+        limit_id
+    FROM
+        limits
+    WHERE
+        limit_type = $limit_type
+`)
 
 const newBucket = db.prepare(`
     INSERT INTO buckets (
@@ -212,14 +221,21 @@ function checkLimit(user_id, limit_id) {
     updateBucket.run(idObj);
     if (!checkBucket.get(idObj)) newBucket.run(idObj);
 }
-function useLimit(user_id, limit_id) {
+exports.useLimit = (user_id, limit_id) => {
     //Allow you to pass a GuildManager, MemberManager, or UserManager object
     if (user_id.id !== undefined) user_id = user_id.id;
+    if (typeof limit_id != 'number') {
+        let tempType = limit_id
+        limit_id = getLimitID.get({limit_type: limit_id});
+        if (limit_id == undefined) throw new Error(`No limit_id found for '${tempType}'`, 1);
+        limit_id = limit_id.limit_id;
+    }
     checkLimit(user_id, limit_id);
     try {
         useBucket.run({user_id: user_id, limit_id: limit_id});
     } catch (error) {
-        return tillNext.get({user_id: user_id, limit_id: limit_id}).next_token_seconds;
+        if (error instanceof SqliteError) return tillNext.get({user_id: user_id, limit_id: limit_id}).next_token_seconds;
+        throw error;
     }
     return false;
 }

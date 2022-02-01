@@ -120,7 +120,8 @@ exports.slashrun = async (client, interaction) => {
 
 exports.help = {
     name:"color",
-    limit: "color"
+    limit: "color",
+    limitScope: "user"
 }
 exports.generateCommand = (isTest = false) => {
     if (!isTest) {

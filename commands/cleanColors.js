@@ -46,7 +46,8 @@ exports.slashrun = async (client, interaction) => {
 
 exports.help = {
     name:"cleancolors",
-    limit: "clean"
+    limit: "clean",
+    limitScope: "guild"
 }
 exports.generateCommand = (isTest = false) => {
     if (!isTest) {
