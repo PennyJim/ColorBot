@@ -1,3 +1,4 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const logger = require("../logger.js");
 const hexRegex = /^#[\da-f]{6}$/i
 exports.run = async (client, guild) => {
@@ -44,5 +45,17 @@ exports.slashrun = async (client, interaction) => {
 
 
 exports.help = {
-    name:"cleancolors"
+    name:"cleancolors",
+    limit: "clean"
+}
+exports.generateCommand = (isTest = false) => {
+    if (!isTest) {
+        return [
+            new SlashCommandBuilder().setName(exports.help.name).setDescription('Removes any unused color role')
+        ]
+    } else {
+        return [
+            
+        ]
+    }
 }

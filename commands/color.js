@@ -1,3 +1,4 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const chalk  = require('chalk');
 const colors = require('../colors.json');
 const logger = require("../logger.js");
@@ -118,5 +119,49 @@ exports.slashrun = async (client, interaction) => {
 }
 
 exports.help = {
-    name:"color"
+    name:"color",
+    limit: "color"
+}
+exports.generateCommand = (isTest = false) => {
+    if (!isTest) {
+        return [
+            new SlashCommandBuilder()
+                .setName(exports.help.name)
+                .setDescription("Set your color")
+                .addSubcommand(subcommand => subcommand
+                    .setName("rgb")
+                    .setDescription("Set your color with Red, Green, and Blue values")
+                    .addIntegerOption(option => option.setName("red").setDescription("How much red").setRequired(true))
+                    .addIntegerOption(option => option.setName("green").setDescription("How much green").setRequired(true))
+                    .addIntegerOption(option => option.setName("blue").setDescription("How much blue").setRequired(true))
+                )
+                .addSubcommand(subcommand => subcommand
+                    .setName('hex')
+                    .setDescription("Set your color a Hexadecimal Value")
+                    .addStringOption(option => option.setName("hex").setDescription("The Hex value you want").setRequired(true))
+                )
+                .addSubcommand(subcommand => subcommand
+                    .setName('named')
+                    .setDescription('Use a named color')
+                    .addStringOption(option => option
+                        .setName("color")
+                        .setDescription("The named color")
+                        .setRequired(true)
+                        // colors.forEach( color => {
+                        //     option.addChoice(color.name, color.hex);
+                        // });
+                    )
+                )
+                .addSubcommand(subcommand => subcommand
+                    .setName('reset')
+                    .setDescription("Reset your color to your default")
+                )
+        ]
+    } else {
+        return [
+            new SlashCommandBuilder()
+                .setName(exports.help.name)
+                .setDescription("(Test) Set your color")
+        ]
+    }
 }
