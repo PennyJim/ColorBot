@@ -161,10 +161,10 @@ exports.generateCommand = (isTest = false) => {
                 )
                 .addSubcommand(subcommand => subcommand
                     .setName('named')
-                    .setDescription('Use a named color')
+                    .setDescription('Use a named HTML color')
                     .addStringOption(option => option
                         .setName("color")
-                        .setDescription("The named color")
+                        .setDescription("The named HTML color")
                         .setRequired(true)
                         // colors.forEach( color => {
                         //     option.addChoice(color.name, color.hex);

@@ -34,19 +34,19 @@ exports.generateCommand = (isTest = false) => {
                 .setDescription("(Test) Ban a color from use")
                 .addSubcommand(subcommand => subcommand
                     .setName("rgb")
-                    .setDescription("Set your color with Red, Green, and Blue values")
+                    .setDescription("Set the banned color with Red, Green, and Blue values")
                     .addIntegerOption(option => option.setName("red").setDescription("How much red").setRequired(true))
                     .addIntegerOption(option => option.setName("green").setDescription("How much green").setRequired(true))
                     .addIntegerOption(option => option.setName("blue").setDescription("How much blue").setRequired(true))
                     .addNumberOption(option => option
                         .setName("threshold")
-                        .setDescription("How close you can get")
+                        .setDescription("How close you can get to the banned color")
                         .setRequired(true)
                     )
                 )
                 .addSubcommand(subcommand => subcommand
                     .setName('hex')
-                    .setDescription("Set your color a Hexadecimal Value")
+                    .setDescription("Set the banned color with a Hexadecimal Value")
                     .addStringOption(option => option.
                         setName("hex")
                         .setDescription("The Hex value you want")
@@ -54,21 +54,21 @@ exports.generateCommand = (isTest = false) => {
                     )
                     .addNumberOption(option => option
                         .setName("threshold")
-                        .setDescription("How close you can get")
+                        .setDescription("How close you can get to the banned color")
                         .setRequired(true)
                     )
                 )
                 .addSubcommand(subcommand => subcommand
                     .setName('named')
-                    .setDescription('Use a named color')
+                    .setDescription('Ban a named HTML color')
                     .addStringOption(option => option
                         .setName("color")
-                        .setDescription("The named color")
+                        .setDescription("The named HTML color")
                         .setRequired(true)
                     )
                     .addNumberOption(option => option
                         .setName("threshold")
-                        .setDescription("How close you can get")
+                        .setDescription("How close you can get to the banned color")
                         .setRequired(true)
                     )
                 )
