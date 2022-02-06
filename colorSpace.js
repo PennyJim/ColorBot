@@ -75,9 +75,9 @@ exports.lab2rgb = (lab) => {
     r = (r > 0.0031308) ? (1.055 * Math.pow(r, 1/2.4) - 0.055) : 12.92 * r;
     g = (g > 0.0031308) ? (1.055 * Math.pow(g, 1/2.4) - 0.055) : 12.92 * g;
     b = (b > 0.0031308) ? (1.055 * Math.pow(b, 1/2.4) - 0.055) : 12.92 * b;
-    return [Math.max(0, Math.min(1, r)) * 255, 
-        Math.max(0, Math.min(1, g)) * 255, 
-        Math.max(0, Math.min(1, b)) * 255]
+    return [Math.round(Math.max(0, Math.min(1, r)) * 255), 
+        Math.round(Math.max(0, Math.min(1, g)) * 255), 
+        Math.round(Math.max(0, Math.min(1, b)) * 255)]
 }
 
 exports.rgb2hex = (rgb) => {
