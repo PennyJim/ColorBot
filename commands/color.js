@@ -84,12 +84,13 @@ exports.slashrun = async (client, interaction) => {
     if (!skipAssign) {
         logger.debug(interaction.guild, interaction.member, "NewColor: ", chalk.hex(hex)(newColor));
         logger.debug(interaction.guild, interaction.member, "HEX:", chalk.hex(hex)(hex));
-        logger.debug(interaction.guild, interaction.member, "LAB:", chalk.hex(hex)(colorSpace.hex2lab(hex)))
+        logger.debug(interaction.guild, interaction.member, "LAB:", colorSpace.hex2lab(hex))
 
         let bannedColors = settings.getBannedColors(interaction.guildId);
         for (const banned of bannedColors) {
-            if (colorSpace.labDeltaE(lab, banned) <= banned[3])
-                return await interaction.reply({content: `Too close to the banned color ${colorSpace.lab2hex(banned)}`, ephemeral: true})
+            if (colorSpace.labDeltaE(lab, banned) <= banned[3]) {
+                return await interaction.reply({content: `Too close to the banned color ${banned[4]}`, ephemeral: true});
+            }
         }
 
         newRole = roles.cache.find(r => r.name == hex.toUpperCase());

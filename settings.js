@@ -24,9 +24,10 @@ db.prepare(`
         a_value REAL NOT NULL,
         b_value REAL NOT NULL,
         threshold REAL NOT NULL,
+        hex_value CHAR(7) NOT NULL,
         guild_id CHAR(18) NOT NULL,
         FOREIGN KEY (guild_id) REFERENCES guilds(guild_id),
-        PRIMARY KEY (guild_id, l_value, a_value, b_value)
+        PRIMARY KEY (guild_id, hex_value)
     )
 `).run();
 //Make db use concurrent
@@ -205,6 +206,7 @@ const addBannedColor = db.prepare(`
         a_value,
         b_value,
         threshold,
+        hex_value,
         guild_id
     )
     VALUES (
@@ -212,6 +214,7 @@ const addBannedColor = db.prepare(`
         $a_value,
         $b_value,
         $threshold,
+        $hex,
         $guild_id
     )
 `)
@@ -221,6 +224,7 @@ const getBannedColors = db.prepare(`
         a_value,
         b_value,
         threshold,
+        hex_value,
         rowid
     FROM
         banned_colors
@@ -245,7 +249,7 @@ const removeBannedColor = db.prepare(`
         AND guild_id = $guild_id
 `)
 
-exports.addBannedColor = (guild_id, lab, threshhold) => {
+exports.addBannedColor = (guild_id, hex, lab, threshhold) => {
     //Allow you to pass a GuildManager object
     if (guild_id.id !== undefined) guild_id = guild_id.id;
     checkCache(guild_id);
@@ -255,7 +259,8 @@ exports.addBannedColor = (guild_id, lab, threshhold) => {
         l_value: lab[0],
         a_value: lab[1],
         b_value: lab[2],
-        threshold: threshhold
+        threshold: threshhold,
+        hex: hex.toUpperCase()
     })
 }
 exports.getBannedColors = (guild_id) => {
