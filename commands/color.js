@@ -2,16 +2,9 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const settings = require('../settings.js');
 const logger = require("../logger.js");
 const chalk  = require('chalk');
+const colorSpace = require('../colorSpace.js');
 const colors = require('../colors.json');
 
-function componentToHex(c) {
-    var hex = c.toString(16);
-    return hex.length == 1 ? "0" + hex : hex;
-}
-  
-function rgbToHex(r, g, b) {
-    return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
-}
 let hexRegex = /^#[\da-f]{6}$/i
 
 exports.msgrun = async (client, message, args) => {
@@ -32,7 +25,7 @@ exports.slashrun = async (client, interaction) => {
     let botRole = roles.botRoleFor(client.user);
     let options = interaction.options;
 
-    let hex, newColor;
+    let hex, lab, newColor;
     let skipAssign = false;
     switch (options.getSubcommand(false))
     {
@@ -49,8 +42,10 @@ exports.slashrun = async (client, interaction) => {
             if (b < 0) { r = 0; }
             if (b > 255) { r = 255; }
 
-            newColor = `rgb(${r}, ${g}, ${b})`
-            hex = rgbToHex(r, g, b);
+            newColor = `rgb(${r}, ${g}, ${b})`;
+            let rgb = [r, g, b];
+            hex = colorSpace.rgb2hex(rgb);
+            lab = colorSpace.rgb2lab(rgb)
             break;
         case "hex":
             //Validate hex is valid
@@ -59,6 +54,7 @@ exports.slashrun = async (client, interaction) => {
             if (temp_hex.match(hexRegex)) {
                 newColor = temp_hex;
                 hex = newColor;
+                lab = colorSpace.hex2lab(hex);
             }
             else {
                 logger.warn(interaction.guild, interaction.member, `${temp_hex} is not a valid color`)
@@ -71,6 +67,7 @@ exports.slashrun = async (client, interaction) => {
             logger.debug(interaction.guild, interaction.member, tempColor);
             if (tempColor !== undefined) {
                 hex = tempColor.hex;
+                lab = colorSpace.hex2lab(hex);
             } else {
                 return interaction.reply({content: `The color "${newColor}" is not a valid named html color`, ephemeral: true});
             }
@@ -83,35 +80,50 @@ exports.slashrun = async (client, interaction) => {
             return interaction.reply({content: `Subcommand "${options.getSubcommand(false)}" is not implemented.`, ephemeral: true});
     }
 
-    let newRole;
+    let newRole; // Make new role
     if (!skipAssign) {
         logger.debug(interaction.guild, interaction.member, "NewColor: ", chalk.hex(hex)(newColor));
-        logger.debug(interaction.guild, interaction.member, "HEX: ", chalk.hex(hex)(hex));
+        logger.debug(interaction.guild, interaction.member, "HEX:", chalk.hex(hex)(hex));
+        logger.debug(interaction.guild, interaction.member, "LAB:", chalk.hex(hex)(colorSpace.hex2lab(hex)))
 
-        newRole = roles.cache.find(r => r.name == hex);
-        if (newRole === undefined) {
-            newRole = await roles.create({name:hex,color:hex,mentionable:false,hoist:false,position:botRole.position,reason:"New color role needed"})
+        let bannedColors = settings.getBannedColors(interaction.guildId);
+        for (const banned of bannedColors) {
+            if (colorSpace.labDeltaE(lab, banned) <= banned[3])
+                return await interaction.reply({content: `Too close to the banned color ${colorSpace.lab2hex(banned)}`, ephemeral: true})
         }
+
+        newRole = roles.cache.find(r => r.name == hex.toUpperCase());
+        if (newRole === undefined) {
+            newRole = await roles.create({
+                name: hex.toUpperCase(),
+                color: hex,
+                mentionable: false,
+                hoist: false,
+                position: botRole.position,
+                permissions: [],
+                reason: "New color role needed"
+            })
+        }
+
+        await interaction.member.roles.add(newRole, "Replacing this member's color role");
     }
-    let oldRoles = []
+
+    let oldRoles = [] // Remove or delete old roles
     interaction.member.roles.cache.forEach(r => {
         if (r.name.match(hexRegex) && (skipAssign || r.id != newRole.id)) {
             if (r.members.size != 1) {
-                oldRoles.push(r.id)
+                interaction.member.roles.remove(oldRoles, "Replacing this member's color role")
             } else {
                 r.delete("A newly unused color role");
             }
+            oldRoles.push(r.id)
         }
     })
     logger.debug(interaction.guild, interaction.member, oldRoles);
-    if (oldRoles.length != 0) {
-        await interaction.member.roles.remove(oldRoles, "Replacing this member's color role")
-        .then(() => {},
-        error =>{logger.error(interaction.guild, interaction.member, error)});
-    }
+    
     if (!skipAssign) {
-        await interaction.member.roles.add(newRole, "Replacing this member's color role");
-        await interaction.reply({content: `Your color has been changed to \`${newColor}\``, ephemeral: true});
+        // await interaction.reply({content: `Your color has been changed to \`${newColor}\``, ephemeral: true});
+        await interaction.reply({content: `Your color has been changed to \`${newColor}\`: <@&${newRole.id}>`, ephemeral: true})
     } else {
         await interaction.reply({content: "Your color has been reset", ephemeral: true});
     }
