@@ -19,10 +19,10 @@ for (const file of commandFiles) {
 const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
 
 rest.put(Routes.applicationCommands(process.env.CLIENTID), { body: globalCommands })
-	.then(() => console.log('Successfully registered global application commands.'))
-	.catch(error => { logger.err(null, null, error) });
-for (const server in testServers) {
+	.then(() => logger.log(null, null, 'Successfully registered global application commands.'))
+	.catch(error => logger.err(null, null, error));
+for (const server of testServers) {
     rest.put(Routes.applicationGuildCommands(process.env.CLIENTID, server), { body: testCommands })
-        .then(() => console.log('Successfully registered testing application commands.'))
-        .catch(error => { logger.err({id: server}, null, error) });
+        .then(() => logger.log({id: server}, null, 'Successfully registered testing application commands.'))
+        .catch(error => logger.err({id: server}, null, error));
 }
