@@ -32,6 +32,32 @@ exports.generateCommand = (isTest = false) => {
             new SlashCommandBuilder()
                 .setName(exports.help.name)
                 .setDescription('Replies with pong!')
+                .addSubcommand(subcommand => subcommand
+                    .setName("get")
+                    .setDescription("Retrieves the setting")
+                    .addStringOption(option => option
+                        .setName("setting")
+                        .setDescription("What setting is retrieved. Gets all if left blank")
+                        .addChoice("MinRole", "MinRole")
+                        .addChoice("MaxRoles", "MaxRoles")
+                        .addChoice("AdminConfig", "AdminConfig"))
+                )
+                .addSubcommand(subcommand => subcommand
+                    .setName("set")
+                    .setDescription("Updates the setting")
+                    .addRoleOption(option => option
+                        .setName("minrole")
+                        .setDescription("The lowest listed role that can use /color")
+                    )
+                    .addIntegerOption(option => option
+                        .setName("maxroles")
+                        .setDescription("The ammount of roles ColorBot can create")
+                    )
+                    .addBooleanOption(option => option
+                        .setName("adminconfig")
+                        .setDescription("Can administrators change the config?")
+                    )
+                )
                 .toJSON()
         ]
     }
