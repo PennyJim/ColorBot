@@ -2,7 +2,7 @@
 const { Client, Intents, Collection } = require('discord.js');
 const rateLimiter = require('./rateLimiter.js');
 const settings = require('./settings.js');
-const config = require("./config.json"); //Not needed?
+const config = require("./config.json");
 const logger = require("./logger.js");
 const fs = require('fs');
 require('dotenv').config()
@@ -10,8 +10,6 @@ require('dotenv').config()
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGES] });
 
 client.commands = new Collection();
-client.rateLimiter = rateLimiter;
-client.settings = settings;
 
 const commandFiles = fs.readdirSync('./commands/').filter(f => f.endsWith('.js'))
 for (const file of commandFiles) {
