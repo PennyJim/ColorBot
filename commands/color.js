@@ -95,8 +95,8 @@ exports.slashrun = async (client, interaction) => {
             }
         }
 
-        newRole = roles.cache.find(r => r.name == hex);
-        if (newRole === undefined || newRole.comparePositionTo(highestBotRole) >= 0) {
+        newRole = roles.cache.find(r => r.name == hex && r.comparePositionTo(highestBotRole) < 0);
+        if (newRole === undefined) {
             newRole = await roles.create({
                 name: hex,
                 color: hex,
