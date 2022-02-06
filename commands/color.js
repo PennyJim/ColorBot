@@ -157,12 +157,14 @@ exports.generateCommand = (isTest = false) => {
                     .setName('reset')
                     .setDescription("Reset your color to your default")
                 )
+                .toJSON()
         ]
     } else {
         return [
             new SlashCommandBuilder()
                 .setName(exports.help.name)
                 .setDescription("(Test) Set your color")
+                .toJSON()
         ]
     }
 }
