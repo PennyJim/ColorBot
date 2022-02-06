@@ -18,6 +18,36 @@ exports.slashrun = async (client, interaction) => {
 
     switch (interaction.options.getSubcommand(false)) {
         case 'set':
+            let newValue, updated = [];
+            if (newValue = interaction.options.get("minrole")) {
+                newValue = newValue.value;
+                logger.debug(interaction.guild, interaction.member, "new minrole:", newValue);
+                updated.push("minrole");
+            }
+            if (newValue = interaction.options.get("maxroles")) {
+                newValue = newValue.value;
+                logger.debug(interaction.guild, interaction.member, "new maxroles:", newValue);
+                updated.push("maxroles");
+            }
+            if (newValue = interaction.options.get("adminconfig")) {
+                newValue = newValue.value;
+                logger.debug(interaction.guild, interaction.member, "new adminconfig:", newValue);
+                updated.push("adminconfig");
+            }
+
+            //Respond with what has been updated
+            if (updated.length > 1) {
+                let last = updated.pop();
+                logger.log(interaction.guild, interaction.member, `Updated ${updated.join(', ')}${updated.length > 1 ? "," : ""} and`, last);
+                return interaction.reply({content: `Updated \`${updated.join('`, `')}\`${updated.length > 1 ? "," : ""} and \`${last}\`.`, ephemeral: true});
+            } else if (updated.length == 1) {
+                logger.log(interaction.guild, interaction.member, "Updated", updated[0]);
+                return interaction.reply({content: `Updated \`${updated[0]}\`.`, ephemeral: true});
+            } else {
+                logger.log(interaction.guild, interaction.member, "Updated nothing");
+                return interaction.reply({content: `Updated nothing.`, ephemeral: true});
+            }
+            break;
         case 'get':
             break;
         default:
