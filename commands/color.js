@@ -79,6 +79,7 @@ exports.slashrun = async (client, interaction) => {
             logger.err(interaction.guild, interaction.member, `Subcommand "${options.getSubcommand(false)}" is not implemented.`);
             return interaction.reply({content: `Subcommand "${options.getSubcommand(false)}" is not implemented.`, ephemeral: true});
     }
+    hex = hex.toUpperCase();
 
     let newRole; // Make new role
     if (!skipAssign) {
@@ -93,10 +94,10 @@ exports.slashrun = async (client, interaction) => {
             }
         }
 
-        newRole = roles.cache.find(r => r.name == hex.toUpperCase());
+        newRole = roles.cache.find(r => r.name == hex);
         if (newRole === undefined) {
             newRole = await roles.create({
-                name: hex.toUpperCase(),
+                name: hex,
                 color: hex,
                 mentionable: false,
                 hoist: false,
