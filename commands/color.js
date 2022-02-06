@@ -23,6 +23,7 @@ exports.slashrun = async (client, interaction) => {
 
     let roles = interaction.guild.roles;
     let botRole = roles.botRoleFor(client.user);
+    let highestBotRole = interaction.guild.me.roles.highest;
     let options = interaction.options;
 
     let hex, lab, newColor;
@@ -95,7 +96,7 @@ exports.slashrun = async (client, interaction) => {
         }
 
         newRole = roles.cache.find(r => r.name == hex);
-        if (newRole === undefined) {
+        if (newRole === undefined || newRole.comparePositionTo(highestBotRole) >= 0) {
             newRole = await roles.create({
                 name: hex,
                 color: hex,
@@ -113,7 +114,9 @@ exports.slashrun = async (client, interaction) => {
     let oldRoles = [] // Remove or delete old roles
     interaction.member.roles.cache.forEach(r => {
         if (r.name.match(hexRegex) && (skipAssign || r.id != newRole.id)) {
-            if (r.members.size != 1) {
+            if (r.comparePositionTo(highestBotRole) >= 0) {
+                logger.warn(interaction.guild, interaction.member, "Can't affect role:", r.name, r.id);
+            } else if (r.members.size != 1) {
                 interaction.member.roles.remove(oldRoles, "Replacing this member's color role")
             } else {
                 r.delete("A newly unused color role");
@@ -130,8 +133,6 @@ exports.slashrun = async (client, interaction) => {
         await interaction.reply({content: "Your color has been reset", ephemeral: true});
     }
 
-    // let standardText = 'color: #ffffff;'
-    // let quietText = 'color: #999999;'
     logger.log(interaction.guild, interaction.member, `Color changed to`, chalk.hex(hex)(hex));
 }
 

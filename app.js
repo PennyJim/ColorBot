@@ -56,14 +56,6 @@ client.on('messageCreate', async message => {
 
 client.on("interactionCreate", async interaction => {
     if (!interaction.isCommand()) return;
-    // if (interaction.inGuild())
-    // {
-    //     let roles = interaction.guild.roles;
-    //     await interaction.guild.members.fetch();
-    //     (await roles.fetch()).forEach(role => {
-    //         logger.debug(interaction.guild, null, "Name:", role.name, "Size:", role.members.size)
-    //     });
-    // }
 
     let command = client.commands.get(interaction.commandName);
     logger.debug(interaction.guild, interaction.user, "Command:", command.help)

@@ -4,9 +4,9 @@ const hexRegex = /^#[\da-f]{6}$/i
 exports.run = async (client, guild) => {
     logger.log(guild, null, "Deleting old color roles");
 
-    let oldRoles = 0;
+    let oldRoles = 0, highestBotRole = guild.me.roles.highest;
     (await guild.roles.fetch(null, {force: true})).forEach(r => {
-        if (r.name.match(hexRegex) && r.members.size == 0)
+        if (r.name.match(hexRegex) && r.members.size == 0 && r.comparePositionTo(highestBotRole) < 0)
         {
             logger.debug(guild, null, "Name:", r.name);
             r.delete("An unused color role");
