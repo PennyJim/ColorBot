@@ -1,7 +1,8 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const settings = require('../settings.js');
+const logger = require("../logger.js");
 const chalk  = require('chalk');
 const colors = require('../colors.json');
-const logger = require("../logger.js");
 
 function componentToHex(c) {
     var hex = c.toString(16);
@@ -21,9 +22,11 @@ exports.msgrun = async (client, message, args) => {
 
 exports.slashrun = async (client, interaction) => {
     logger.debug(interaction.guild, interaction.member, "Subcommand:", interaction.options.getSubcommand(false))
-    
+    if(!interaction.inGuild())
+        return interaction.reply({content: "Has to be called in a server", ephemeral: true});
+    if(interaction.member.roles.highest.comparePositionTo(settings.getMinRole(interaction.guildId)) < 0)
+        return interaction.reply({content: "You do not have permission to do this", ephemeral: true});
 
-    if(!interaction.inGuild()) { return interaction.reply({content: "Has to be called in a server", ephemeral: true});}
 
     let roles = interaction.guild.roles;
     let botRole = roles.botRoleFor(client.user);

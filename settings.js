@@ -4,8 +4,8 @@ const defaultID = config.default.guild_id; //"Default           ";
 let guildCache = {}; //Might be better uncached?
 
 //Drop Tables for testing purposes 
-db.prepare(`DROP TABLE IF EXISTS banned_colors  `).run()
-db.prepare(`DROP TABLE IF EXISTS guilds         `).run()
+// db.prepare(`DROP TABLE IF EXISTS banned_colors  `).run()
+// db.prepare(`DROP TABLE IF EXISTS guilds         `).run()
 
 //Make sure guilds exists
 db.prepare(`
@@ -70,11 +70,9 @@ else {
             SET
                 minrole = $minrole,
                 maxroles = $maxroles,
-                color_pertime = $color_pertime,
-                color_ time = $color_time,
                 can_admin_config = $can_admin_config
             WHERE
-                    guild_id = $guild_id
+                guild_id = $guild_id
         `).run(config.default);
     }
 }
@@ -82,7 +80,7 @@ else {
 //Function for making a new guild entry in the database
 function newGuild(guild) {
     let defaultGuild = getGuild.get({ guild_id: defaultID })
-    if (guild.minrole === undefined) {guild.minrole = defaultGuild.minrole}
+    if (guild.minrole === undefined) {guild.minrole = guild.guild_id}
     if (guild.maxroles === undefined) {guild.maxroles = defaultGuild.maxroles}
     if (guild.can_admin_config === undefined) {guild.can_admin_config = defaultGuild.can_admin_config}
     addGuild.run(guild);
@@ -250,6 +248,7 @@ const removeBannedColor = db.prepare(`
 exports.addBannedColor = (guild_id, lab, threshhold) => {
     //Allow you to pass a GuildManager object
     if (guild_id.id !== undefined) guild_id = guild_id.id;
+    checkCache(guild_id);
 
     return addBannedColor.run({
         guild_id: guild_id,

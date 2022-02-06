@@ -21,7 +21,7 @@ exports.slashrun = async (client, interaction) => {
             let newValue, updated = [];
             if (newValue = interaction.options.get("minrole")) {
                 newValue = newValue.value;
-                if (newValue == interaction.guildId) newValue = null;
+                // if (newValue == interaction.guildId) newValue = null;
                 logger.debug(interaction.guild, interaction.member, "new minrole:", newValue);
                 settings.setMinRole(interaction.guildId, newValue);
                 updated.push("minrole");
