@@ -32,6 +32,46 @@ exports.generateCommand = (isTest = false) => {
             new SlashCommandBuilder()
                 .setName(exports.help.name)
                 .setDescription("(Test) Ban a color from use")
+                .addSubcommand(subcommand => subcommand
+                    .setName("rgb")
+                    .setDescription("Set your color with Red, Green, and Blue values")
+                    .addIntegerOption(option => option.setName("red").setDescription("How much red").setRequired(true))
+                    .addIntegerOption(option => option.setName("green").setDescription("How much green").setRequired(true))
+                    .addIntegerOption(option => option.setName("blue").setDescription("How much blue").setRequired(true))
+                    .addNumberOption(option => option
+                        .setName("threshold")
+                        .setDescription("How close you can get")
+                        .setRequired(true)
+                    )
+                )
+                .addSubcommand(subcommand => subcommand
+                    .setName('hex')
+                    .setDescription("Set your color a Hexadecimal Value")
+                    .addStringOption(option => option.
+                        setName("hex")
+                        .setDescription("The Hex value you want")
+                        .setRequired(true)
+                    )
+                    .addNumberOption(option => option
+                        .setName("threshold")
+                        .setDescription("How close you can get")
+                        .setRequired(true)
+                    )
+                )
+                .addSubcommand(subcommand => subcommand
+                    .setName('named')
+                    .setDescription('Use a named color')
+                    .addStringOption(option => option
+                        .setName("color")
+                        .setDescription("The named color")
+                        .setRequired(true)
+                    )
+                    .addNumberOption(option => option
+                        .setName("threshold")
+                        .setDescription("How close you can get")
+                        .setRequired(true)
+                    )
+                )
                 .toJSON()
         ]
     }
