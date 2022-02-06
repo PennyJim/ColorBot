@@ -13,6 +13,18 @@ exports.slashrun = async (client, interaction) => {
         !(settings.getCanAdminConfig(interaction.guild.id) && interaction.memberPermissions.has("ADMINISTRATOR")))
         return interaction.reply({content: "You do not have permission to do this", ephemeral: true});
 
+    logger.debug(interaction.guild, interaction.member, "Subcommand:", interaction.options.getSubcommand(false))
+    logger.debug(interaction.guild, interaction.member, "Options:", interaction.options)
+
+    switch (interaction.options.getSubcommand(false)) {
+        case 'set':
+        case 'get':
+            break;
+        default:
+            logger.err(interaction.guild, interaction.member, `Subcommand "${options.getSubcommand(false)}" is not implemented.`);
+            return interaction.reply({content: `Subcommand "${options.getSubcommand(false)}" is not implemented.`, ephemeral: true});
+    }
+
     interaction.reply({content: "My ping is \`" + client.ws.ping + " ms\`", ephemeral: true});
 }
 
