@@ -21,17 +21,21 @@ exports.slashrun = async (client, interaction) => {
             let newValue, updated = [];
             if (newValue = interaction.options.get("minrole")) {
                 newValue = newValue.value;
+                if (newValue == interaction.guildId) newValue = null;
                 logger.debug(interaction.guild, interaction.member, "new minrole:", newValue);
+                settings.setMinRole(interaction.guildId, newValue);
                 updated.push("minrole");
             }
             if (newValue = interaction.options.get("maxroles")) {
                 newValue = newValue.value;
                 logger.debug(interaction.guild, interaction.member, "new maxroles:", newValue);
+                settings.setMaxRoles(interaction.guildId, newValue);
                 updated.push("maxroles");
             }
             if (newValue = interaction.options.get("adminconfig")) {
                 newValue = newValue.value;
                 logger.debug(interaction.guild, interaction.member, "new adminconfig:", newValue);
+                settings.setCanAdminConfig(interaction.guildId, newValue);
                 updated.push("adminconfig");
             }
 
