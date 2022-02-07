@@ -1,7 +1,17 @@
 const db = require('better-sqlite3')('./data/settings.db');
-const config = require("./config.json");
+const nodeCron = require('node-cron');
+const config = require("../config.json");
 const defaultID = config.default.guild_id; //"Default           ";
 let guildCache = {}; //Might be better uncached?
+
+db.pragma('wal_autocheckpoint = 500'); //Since it's read-heavy, smaller allowed wal size
+db.pragma('mmap_size = 30000000000'); //Use memory mapping instead of r/w calls
+db.pragma('journal_mode = WAL'); //Increases performance, apparently
+nodeCron.schedule('0 0 */12 * * *', () => {
+    //Force a checkpoint and then optimize every 12 hours
+    db.pragma('wal_checkpoint(truncate)');
+    db.pragma('optimize');
+});
 
 //Drop Tables for testing purposes 
 // db.prepare(`DROP TABLE IF EXISTS banned_colors  `).run()
@@ -31,7 +41,6 @@ db.prepare(`
     )
 `).run();
 //Make db use concurrent
-db.pragma('journal_mode = WAL');
 
 //Statement for adding or getting guilds
 const addGuild = db.prepare(`
@@ -289,6 +298,8 @@ exports.removeBannedColor = (guild_id, id) => {
     })
 }
 exports.close = () => {
+    db.pragma('vacuum');
+    db.pragma('optimize');
     db.close();
     return delete exports;
 }

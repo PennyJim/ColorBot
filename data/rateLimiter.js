@@ -1,7 +1,17 @@
 const db = require('better-sqlite3')('./data/rateLimit.db');
 const SqliteError = require('better-sqlite3/lib/sqlite-error');
+const nodeCron = require('node-cron');
 // const settings = require('./settings.js'); //Might need?
-const config = require("./config.json");
+const config = require("../config.json");
+
+// db.pragma('wal_autocheckpoint = 500'); //More write heavy so keep default 1000?
+db.pragma('mmap_size = 30000000000'); //Use memory mapping instead of r/w calls
+db.pragma('journal_mode = WAL'); //Increases performance, apparently
+nodeCron.schedule('0 0 */12 * * *', () => {
+    //Force a checkpoint and then optimize every 12 hours
+    db.pragma('wal_checkpoint(truncate)');
+    db.pragma('optimize');
+});
 
 //Drop tables because they're now out of date
 db.prepare(`DROP TABLE IF EXISTS buckets`).run();
@@ -125,7 +135,7 @@ db.prepare(`
     END;
 `).run();
 //Make db use concurrent
-db.pragma('journal_mode = WAL');
+
 
 const getLimitID = db.prepare(`
     SELECT

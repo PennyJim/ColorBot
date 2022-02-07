@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const settings = require('../settings.js');
+const settings = require('../data/settings.js');
 const logger = require("../logger.js");
 
 exports.msgrun = async (client, message, args) => {

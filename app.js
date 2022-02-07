@@ -1,7 +1,7 @@
 'use strict';
 const { Client, Intents, Collection } = require('discord.js');
-const rateLimiter = require('./rateLimiter.js');
-const settings = require('./settings.js');
+const rateLimiter = require('./data/rateLimiter.js');
+const settings = require('./data/settings.js');
 const config = require("./config.json");
 const logger = require("./logger.js");
 const fs = require('fs');
