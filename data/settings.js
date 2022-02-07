@@ -40,7 +40,6 @@ db.prepare(`
         PRIMARY KEY (guild_id, hex_value)
     )
 `).run();
-//Make db use concurrent
 
 //Statement for adding or getting guilds
 const addGuild = db.prepare(`
@@ -144,14 +143,14 @@ function setDefaultValue(newValue, sqlStatement) {
         new_value: newValue
     });
 }
-function setValue(guild_id, newValue, sqlStatement) {
+function setValue(guild_id, newValue, sqlStatement, valueName) {
     //Allow you to pass a GuildManager object
     if (guild_id.id !== undefined) guild_id = guild_id.id;
     //Don't cache the Default guild
     if (guild_id == defaultID) return this.setDefaultValue(newValue, sqlStatement);
 
     let guild = checkCache(guild_id);
-    guild.minrole = newValue;
+    guild[valueName] = newValue;
     return sqlStatement.run({
         guild_id: guild_id,
         new_value: newValue
@@ -171,7 +170,7 @@ exports.setDefaultMinRole = (newValue) => {
     return setDefaultValue(newValue, setMinRole);
 }
 exports.setMinRole = (guild_id, newValue) => {
-    return setValue(guild_id, newValue, setMinRole);
+    return setValue(guild_id, newValue, setMinRole, "minrole");
 }
 
 const setMaxRoles = db.prepare(`
@@ -186,7 +185,7 @@ exports.setDefaultMaxRoles = (newValue) => {
     return setDefaultValue(newValue, setMaxRoles);
 }
 exports.setMaxRoles = (guild_id, newValue) => {
-    return setValue(guild_id, newValue, setMaxRoles);
+    return setValue(guild_id, newValue, setMaxRoles, "maxroles");
 }
 
 const setCanAdminConfig = db.prepare(`
@@ -205,7 +204,7 @@ exports.setDefaultCanAdminConfig = (newValue) => {
 exports.setCanAdminConfig = (guild_id, newValue) => {
     //So it can recieve booleans without it dying
     if (newValue) {newValue = 1} else { newValue = 0}
-    return setValue(guild_id, newValue, setCanAdminConfig);
+    return setValue(guild_id, newValue, setCanAdminConfig, "can_admin_config");
 }
 
 //SQL statments for banned colors
