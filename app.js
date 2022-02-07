@@ -4,6 +4,7 @@ const rateLimiter = require('./data/rateLimiter.js');
 const settings = require('./data/settings.js');
 const config = require("./config.json");
 const logger = require("./logger.js");
+const nodeCron = require('node-cron');
 const fs = require('fs');
 require('dotenv').config()
 
@@ -20,12 +21,14 @@ for (const file of commandFiles) {
 
 const closeFunc = () => {
     logger.log(null, null, "Closing processes");
+    client.destroy();
+    logger.log(null, null, "Discord client destroyed");
+    for (const task of nodeCron.getTasks()) task.stop();
+    logger.log(null, null, "Node-Cron Stoppped");
     rateLimiter.close();
     logger.log(null, null, "Rate limit database closed");
     settings.close();
     logger.log(null, null, "Settings database closed");
-    client.destroy();
-    logger.log(null, null, "Discord client destroyed");
 
     logger.log(null, null, "Done");
 }
