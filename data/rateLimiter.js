@@ -184,6 +184,20 @@ const getLimitID = db.prepare(`
     WHERE
         limit_type = $limit_type
 `)
+const cleanBuckets = db.prepare(`
+    DELETE FROM
+        buckets AS buk
+    WHERE
+        (SELECT
+            buk.uses_left = lim.max_uses
+        FROM
+            limits lim
+        WHERE
+            buk.limit_id = lim.limit_id
+        )
+`)
+//Clean the buckets at the top of every hour
+nodeCron.schedule('0 0 * * * *', cleanBuckets.run);
 
 const newBucket = db.prepare(`
     INSERT INTO buckets (
@@ -298,6 +312,59 @@ exports.useConfig = (user_id) => {
     return useLimit(user_id, 3);
 }
 exports.close = () => {
+    //Update *all* buckets
+    db.prepare(`
+    WITH calc AS (
+        SELECT
+            FLOOR((JULIANDAY('now') - JULIANDAY(buc.last_token)) * 24 * lim.use_per_hour) AS new_tokens,
+            DATETIME(buc.last_token, (FLOOR((JULIANDAY('now') - JULIANDAY(buc.last_token))
+                * 24 * lim.use_per_hour) * lim.use_interval) || ' minutes') AS new_token_time,
+            buc.user_id,
+            buc.limit_id
+        FROM
+            buckets buc
+        JOIN
+            limits lim
+        ON
+            lim.limit_id = buc.limit_id
+    )
+    UPDATE
+        buckets as buk
+    SET
+        uses_left = uses_left + (
+            SELECT
+                new_tokens
+            FROM
+                calc
+            WHERE
+                calc.user_id = buk.user_id
+                AND calc.limit_id = buk.limit_id
+            ),
+        last_token = (
+            SELECT
+                new_token_time
+            FROM
+                calc
+            WHERE
+                calc.user_id = buk.user_id
+                AND calc.limit_id = buk.limit_id
+            )
+    WHERE
+        0 < (
+            SELECT
+                new_tokens
+            FROM
+                calc
+            WHERE
+                calc.user_id = buk.user_id
+                AND calc.limit_id = buk.limit_id
+            )
+    `).run();
+    //Delete all full buckets
+    cleanBuckets.run();
+
+    db.pragma('vacuum');
+    db.pragma('optimize');
     db.close();
     return delete exports;
 }
