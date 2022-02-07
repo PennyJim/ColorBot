@@ -2,7 +2,6 @@ const db = require('better-sqlite3')('./data/rateLimit.db');
 const SqliteError = require('better-sqlite3/lib/sqlite-error');
 const nodeCron = require('node-cron');
 // const settings = require('./settings.js'); //Might need?
-const config = require("../config.json");
 
 // db.pragma('wal_autocheckpoint = 500'); //More write heavy so keep default 1000?
 db.pragma('mmap_size = 30000000000'); //Use memory mapping instead of r/w calls
@@ -13,14 +12,16 @@ nodeCron.schedule('0 0 */12 * * *', () => {
     db.pragma('optimize');
 });
 
-//Drop tables because they're now out of date
-db.prepare(`DROP TABLE IF EXISTS buckets`).run();
-db.prepare(`DROP TABLE IF EXISTS limits`).run();
+// //Keep the db's pretty up to date for debugging
+// nodeCron.schedule('*/2 * * * *', () => db.pragma('wal_checkpoint(full)'));
 
+//Drop tables because they're now out of date
+// db.prepare(`DROP TABLE IF EXISTS buckets`).run();
+// db.prepare(`DROP TABLE IF EXISTS limits`).run();
 
 //Make the limits table TODO: make virtual?
 db.prepare(`
-    CREATE TABLE limits (
+    CREATE TABLE IF NOT EXISTS limits (
         limit_id TINYINT NOT NULL,
         limit_type VARCHAR(6) NOT NULL UNIQUE,
         max_uses SMALLINT,
@@ -29,48 +30,86 @@ db.prepare(`
         PRIMARY KEY (limit_id)
     ) WITHOUT ROWID
 `).run();
-//For when/if buckets aren't cleared on start
-db.prepare(`
-    CREATE TRIGGER update_limit
-    AFTER UPDATE ON limits
-    WHEN
-        OLD.max_uses > NEW.max_uses
-    BEGIN
-        UPDATE
-            buckets
-        SET
-            uses_left = NEW.max_uses
-        WHERE
-            limit_id = NEW.limit_id
-            AND uses_left > NEW.max_uses;
-    END;
-`).run();
-//Auto Calculate the interval
-db.prepare(`
-    CREATE TRIGGER update_interval
-    AFTER UPDATE ON limits
-    WHEN
-        OLD.use_per_hour <> NEW.use_per_hour
-    BEGIN
-        UPDATE
-            limits
-        SET
-            use_interval = 60.0 / NEW.use_per_hour;
-    END;
-`).run();
+//Make sure the limits exist
+let limits = db.prepare(`SELECT * FROM limits`).raw().all();
+if (limits[0] == undefined)
+    db.prepare(`
+        INSERT INTO limits
+            (limit_id, limit_type, max_uses, use_per_hour, use_interval)
+        VALUES
+            (1, $color, $color_max, $color_per_hour, 60.0 / $color_per_hour),
+            (2, $clean, $clean_max, $clean_per_hour, 60.0 / $clean_per_hour),
+            (3, $config, $config_max, $config_per_hour, 60.0 / $config_per_hour)
+    `).run(require("../config.json").ratelimits);
 //Make sure it matches the config
+else {
+    let newColor = false, newClean = false, newConfig = false;
+    const { ratelimits } = require("../config.json"); 
+    //Compare values
+    let limit = limits[0]
+    if (limit[1] != ratelimits.color ||
+        limit[2] != ratelimits.color_max ||
+        limit[3] != ratelimits.color_per_hour)
+        newColor = true;
+    limit = limits[1]
+    if (limit[1] != ratelimits.clean ||
+        limit[2] != ratelimits.clean_max ||
+        limit[3] != ratelimits.clean_per_hour)
+        newClean = true;
+    limit = limits[2]
+    if (limit[1] != ratelimits.config ||
+        limit[2] != ratelimits.config_max ||
+        limit[3] != ratelimits.config_per_hour)
+        newConfig = true;
+    if (newColor || newClean || newConfig) {
+        //Remove triggers (if exists)
+        db.prepare(`DROP TRIGGER IF EXISTS readonly_limits`).run();
+        //Fix values
+        if (newColor) db.prepare(`
+            UPDATE limits
+            SET
+                limit_type = $color,
+                max_uses = $color_max,
+                use_per_hour = $color_per_hour,
+                use_interval = 60.0 / $color_per_hour
+            WHERE
+                limit_id = 1
+        `).run(ratelimits);
+        if (newClean) db.prepare(`
+            UPDATE limits
+            SET
+                limit_type = $clean,
+                max_uses = $clean_max,
+                use_per_hour = $clean_per_hour,
+                use_interval = 60.0 / $clean_per_hour
+            WHERE
+                limit_id = 2
+        `).run(ratelimits);
+        if (newConfig) db.prepare(`
+            UPDATE limits
+            SET
+                limit_type = $config,
+                max_uses = $config_max,
+                use_per_hour = $config_per_hour,
+                use_interval = 60.0 / $config_per_hour
+            WHERE
+                limit_id = 3
+        `).run(ratelimits);
+    }
+}
+
+//Make limits read-only
 db.prepare(`
-    INSERT INTO limits
-        (limit_id, limit_type, max_uses, use_per_hour, use_interval)
-    VALUES
-        (1, $color, $color_max, $color_per_hour, 60.0 / $color_per_hour),
-        (2, $clean, $clean_max, $clean_per_hour, 60.0 / $clean_per_hour),
-        (3, $config, $config_max, $config_per_hour, 60.0 / $config_per_hour)
-`).run(config.ratelimits);
+    CREATE TRIGGER IF NOT EXISTS readonly_limits
+    BEFORE UPDATE ON limits
+    BEGIN
+        SELECT raise(abort, 'The config should be updated and bot restarted instead');
+    END
+`).run();
 
 //Make the buckets table
 db.prepare(`
-    CREATE TABLE buckets (
+    CREATE TABLE IF NOT EXISTS buckets(
         user_id CHAR(18) NOT NULL,
         limit_id TINYINT NOT NULL,
         uses_left SMALLINT,
@@ -82,7 +121,7 @@ db.prepare(`
 `).run();
 //Constrain buckets.uses_left to below limits.max_uses
 db.prepare(`
-    CREATE TRIGGER update_bucket
+    CREATE TRIGGER IF NOT EXISTS constrain_bucket
     AFTER UPDATE ON buckets
     WHEN
         NEW.uses_left > OLD.uses_left
@@ -114,7 +153,7 @@ db.prepare(`
 `).run();
 //Autofill the bucket information
 db.prepare(`
-    CREATE TRIGGER new_bucket
+    CREATE TRIGGER IF NOT EXISTS new_bucket
     AFTER INSERT ON buckets
     BEGIN
         UPDATE

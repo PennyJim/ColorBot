@@ -13,9 +13,11 @@ nodeCron.schedule('0 0 */12 * * *', () => {
     db.pragma('optimize');
 });
 
+// //Keep the db's pretty up to date for debugging
+// nodeCron.schedule('*/2 * * * *', () => db.pragma('wal_checkpoint(full)'));
 //Drop Tables for testing purposes 
-// db.prepare(`DROP TABLE IF EXISTS banned_colors  `).run()
-// db.prepare(`DROP TABLE IF EXISTS guilds         `).run()
+// db.prepare(`DROP TABLE IF EXISTS banned_colors  `).run();
+// db.prepare(`DROP TABLE IF EXISTS guilds         `).run();
 
 //Make sure guilds exists
 db.prepare(`
@@ -85,6 +87,7 @@ else {
         `).run(config.default);
     }
 }
+delete defGuild;
 
 //Function for making a new guild entry in the database
 function newGuild(guild) {
