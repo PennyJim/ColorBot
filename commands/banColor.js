@@ -17,7 +17,7 @@ exports.slashrun = async (client, interaction) => {
 }
 
 exports.help = {
-    name:"bancolor",
+    name:"bannedcolors",
     limit: "config",
     limitScope: "guild"
 }
@@ -32,45 +32,69 @@ exports.generateCommand = (isTest = false) => {
             new SlashCommandBuilder()
                 .setName(exports.help.name)
                 .setDescription("(Test) Ban a color from use")
-                .addSubcommand(subcommand => subcommand
-                    .setName("rgb")
-                    .setDescription("Set the banned color with Red, Green, and Blue values")
-                    .addIntegerOption(option => option.setName("red").setDescription("How much red").setRequired(true))
-                    .addIntegerOption(option => option.setName("green").setDescription("How much green").setRequired(true))
-                    .addIntegerOption(option => option.setName("blue").setDescription("How much blue").setRequired(true))
-                    .addNumberOption(option => option
-                        .setName("threshold")
-                        .setDescription("How close you can get to the banned color")
+                .addSubcommandGroup(group => group.setName("add")
+                    .setDescription("Add a banned color")
+                    .addSubcommand(subcommand => subcommand.setName("rgb")
+                        .setDescription("Set the banned color with Red, Green, and Blue values")
+                        .addIntegerOption(option => option.setName("red").setDescription("How much red").setRequired(true))
+                        .addIntegerOption(option => option.setName("green").setDescription("How much green").setRequired(true))
+                        .addIntegerOption(option => option.setName("blue").setDescription("How much blue").setRequired(true))
+                        .addNumberOption(option => option
+                            .setName("threshold")
+                            .setDescription("How close you can get to the banned color")
+                            .setRequired(true)
+                        )
+                    )
+                    .addSubcommand(subcommand => subcommand.setName('hex')
+                        .setDescription("Set the banned color with a Hexadecimal Value")
+                        .addStringOption(option => option.
+                            setName("hex")
+                            .setDescription("The Hex value you want")
+                            .setRequired(true)
+                        )
+                        .addNumberOption(option => option
+                            .setName("threshold")
+                            .setDescription("How close you can get to the banned color")
+                            .setRequired(true)
+                        )
+                    )
+                    .addSubcommand(subcommand => subcommand.setName('named')
+                        .setDescription('Ban a named HTML color')
+                        .addStringOption(option => option
+                            .setName("color")
+                            .setDescription("The named HTML color")
+                            .setRequired(true)
+                        )
+                        .addNumberOption(option => option
+                            .setName("threshold")
+                            .setDescription("How close you can get to the banned color")
+                            .setRequired(true)
+                        )
+                    )
+                )
+                .addSubcommand(subcommand => subcommand.setName("remove")
+                    .setDescription("Pick a color to remove")
+                    .addIntegerOption(option => option
+                        .setName("index")
+                        .setDescription("The index of the color to unban")
                         .setRequired(true)
                     )
                 )
-                .addSubcommand(subcommand => subcommand
-                    .setName('hex')
-                    .setDescription("Set the banned color with a Hexadecimal Value")
-                    .addStringOption(option => option.
-                        setName("hex")
-                        .setDescription("The Hex value you want")
+                .addSubcommand(subcommand => subcommand.setName("update")
+                    .setDescription("Pick a color to update the threshold of")
+                    .addIntegerOption(option => option
+                        .setName("index")
+                        .setDescription("The index of the color to unban")
                         .setRequired(true)
                     )
                     .addNumberOption(option => option
                         .setName("threshold")
-                        .setDescription("How close you can get to the banned color")
+                        .setDescription("The new threshold of the banned color")
                         .setRequired(true)
                     )
                 )
-                .addSubcommand(subcommand => subcommand
-                    .setName('named')
-                    .setDescription('Ban a named HTML color')
-                    .addStringOption(option => option
-                        .setName("color")
-                        .setDescription("The named HTML color")
-                        .setRequired(true)
-                    )
-                    .addNumberOption(option => option
-                        .setName("threshold")
-                        .setDescription("How close you can get to the banned color")
-                        .setRequired(true)
-                    )
+                .addSubcommand(subcommand => subcommand.setName("list")
+                    .setDescription("Lists what colors are banned")
                 )
                 .toJSON()
         ]
