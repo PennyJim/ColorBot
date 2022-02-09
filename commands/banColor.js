@@ -81,19 +81,21 @@ exports.slashrun = async (client, interaction) => {
     }
 
     let threshold = options.getNumber("threshold", false);
+    if (threshold > 50) threshold = 50;
+    if (threshold != 0 && threshold < 1) threshold = 1;
     try {
-        let index = options.getInteger("index");
+        let index = options.getInteger("index", true);
         let bannedColor = settings.getBannedColor(guildId, index);
-        logger.debug(interaction.guild, interaction.member, bannedColor);
         if (threshold) {
+        if (threshold < 1) threshold = 1;
             settings.setBannedThreshold(guildId, index, threshold);
             return interaction.reply({content: `Set \`${index}\`:\`${bannedColor.hex_value}\`'s threshold to \`${threshold}\`.`, ephemeral: true});
         }
         settings.removeBannedColor(guildId, index)
         return interaction.reply({content: `Removed \`${index}\`:\`${bannedColor.hex_value}\`.`, ephemeral: true});
     } catch (err) {
-        //TODO: Rethrow error if it's not the one returned by options.get__
-        logger.err(interaction.guild, interaction.member, err);
+        if (err.name != "TypeError [COMMAND_INTERACTION_OPTION_NOT_FOUND]") throw err;
+        if (threshold == 0) threshold = 1;
 
         let index = settings.addBannedColor(guildId, hex, lab, threshold).lastInsertRowid;
         return interaction.reply({content: `Added \`${index}\`:\`${hex}\` to the banned colors with a threshold of \`${threshold}\`.`, ephemeral: true})
