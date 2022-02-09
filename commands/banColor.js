@@ -1,6 +1,8 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const settings = require('../data/settings.js');
 const logger = require("../logger.js");
+const colorSpace = require('../colorSpace.js');
+const colors = require("../colors.json");
 
 exports.msgrun = async (client, message, args) => {
     message.reply({content: "My ping is \`" + client.ws.ping + " ms\`", ephemeral: true});
@@ -12,6 +14,91 @@ exports.slashrun = async (client, interaction) => {
     if (interaction.member.id !== interaction.guild.ownerId &&
         !(settings.getCanAdminConfig(interaction.guild.id) && interaction.memberPermissions.has("ADMINISTRATOR")))
         return interaction.reply({content: "You do not have permission to do this", ephemeral: true});
+
+
+    let guildId = interaction.guildId;
+    let options = interaction.options;
+
+    let hex, lab, newColor;
+    if (options.getSubcommandGroup(false) == "add") {
+        switch (options.getSubcommand(false))
+        {
+            case "rgb":
+                let r = options.getInteger("red");
+                let g = options.getInteger("green");
+                let b = options.getInteger("blue");
+
+                //Clamp rgb values within range
+                if (r < 0) { r = 0; }
+                if (r > 255) { r = 255; }
+                if (g < 0) { r = 0; }
+                if (g > 255) { r = 255; }
+                if (b < 0) { r = 0; }
+                if (b > 255) { r = 255; }
+
+                newColor = `rgb(${r}, ${g}, ${b})`;
+                let rgb = [r, g, b];
+                hex = colorSpace.rgb2hex(rgb);
+                lab = colorSpace.rgb2lab(rgb)
+                break;
+            case "hex":
+                //Validate hex is valid
+                temp_hex = options.getString("hex");
+                if (temp_hex.charAt(0) != '#') { temp_hex = "#" + temp_hex; }
+                if (temp_hex.match(hexRegex)) {
+                    newColor = temp_hex;
+                    hex = newColor;
+                    lab = colorSpace.hex2lab(hex);
+                }
+                else {
+                    logger.warn(interaction.guild, interaction.member, `${temp_hex} is not a valid color`)
+                    return interaction.reply({content: `${temp_hex} is not a valid color`, ephemeral: true});
+                }
+                break;
+            case "named":
+                newColor = options.getString("color");
+                let tempColor = colors[newColor.toUpperCase()];
+                logger.debug(interaction.guild, interaction.member, tempColor);
+                if (tempColor !== undefined) {
+                    hex = tempColor.hex;
+                    lab = colorSpace.hex2lab(hex);
+                } else {
+                    return interaction.reply({content: `The color "${newColor}" is not a valid named html color`, ephemeral: true});
+                }
+                break;
+            default:
+                logger.err(interaction.guild, interaction.member, `Subcommand "${options.getSubcommand(false)}" is not implemented.`);
+                return interaction.reply({content: `Subcommand "${options.getSubcommand(false)}" is not implemented.`, ephemeral: true});
+        }
+    }
+    if (options.getSubcommand(false) == "list") {
+        let bannedColors = settings.getBannedColors(guildId);
+        let bannedList = "Id:Hex - Threshold"
+        for (const color of bannedColors) {
+            bannedList += `\n\`${color[5]}\`:\`${color[4]}\` - \`${color[3]}\``;
+        }
+        return interaction.reply({content: bannedList, ephemeral: true});
+    }
+
+    let threshold = options.getNumber("threshold", false);
+    try {
+        let index = options.getInteger("index");
+        let bannedColor = settings.getBannedColor(guildId, index);
+        logger.debug(interaction.guild, interaction.member, bannedColor);
+        if (threshold) {
+            settings.setBannedThreshold(guildId, index, threshold);
+            return interaction.reply({content: `Set \`${index}\`:\`${bannedColor.hex_value}\`'s threshold to \`${threshold}\`.`, ephemeral: true});
+        }
+        settings.removeBannedColor(guildId, index)
+        return interaction.reply({content: `Removed \`${index}\`:\`${bannedColor.hex_value}\`.`, ephemeral: true});
+    } catch (err) {
+        //TODO: Rethrow error if it's not the one returned by options.get__
+        logger.err(interaction.guild, interaction.member, err);
+
+        let index = settings.addBannedColor(guildId, hex, lab, threshold).lastInsertRowid;
+        return interaction.reply({content: `Added \`${index}\`:\`${hex}\` to the banned colors with a threshold of \`${threshold}\`.`, ephemeral: true})
+    }
+
     
     interaction.reply({content: "My ping is \`" + client.ws.ping + " ms\`", ephemeral: true});
 }
@@ -35,7 +122,7 @@ exports.generateCommand = (isTest = false) => {
                 .addSubcommandGroup(group => group.setName("add")
                     .setDescription("Add a banned color")
                     .addSubcommand(subcommand => subcommand.setName("rgb")
-                        .setDescription("Set the banned color with Red, Green, and Blue values")
+                        .setDescription("Ban a color with Red, Green, and Blue values")
                         .addIntegerOption(option => option.setName("red").setDescription("How much red").setRequired(true))
                         .addIntegerOption(option => option.setName("green").setDescription("How much green").setRequired(true))
                         .addIntegerOption(option => option.setName("blue").setDescription("How much blue").setRequired(true))
@@ -46,7 +133,7 @@ exports.generateCommand = (isTest = false) => {
                         )
                     )
                     .addSubcommand(subcommand => subcommand.setName('hex')
-                        .setDescription("Set the banned color with a Hexadecimal Value")
+                        .setDescription("Ban a color by Hexadecimal Value")
                         .addStringOption(option => option.
                             setName("hex")
                             .setDescription("The Hex value you want")

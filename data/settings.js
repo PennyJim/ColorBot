@@ -244,6 +244,20 @@ const getBannedColors = db.prepare(`
     ORDER BY
         rowid ASC
 `).raw(true);
+const getBannedColor = db.prepare(`
+    SELECT
+        l_value,
+        a_value,
+        b_value,
+        threshold,
+        hex_value,
+        rowid
+    FROM
+        banned_colors
+    WHERE
+        guild_id = $guild_id
+        AND rowid = $id
+`)
 const setBannedThreshold = db.prepare(`
     UPDATE
         banned_colors
@@ -279,6 +293,12 @@ exports.getBannedColors = (guild_id) => {
     if (guild_id.id !== undefined) guild_id = guild_id.id;
 
     return getBannedColors.all({guild_id: guild_id});
+}
+exports.getBannedColor = (guild_id, id) => {
+    //Allow you to pass a GuildManager object
+    if (guild_id.id !== undefined) guild_id = guild_id.id;
+
+    return getBannedColor.get({guild_id: guild_id, id: id});
 }
 exports.setBannedThreshold = (guild_id, id, newValue) => {
     //Allow you to pass a GuildManager object
