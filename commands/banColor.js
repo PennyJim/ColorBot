@@ -82,17 +82,22 @@ exports.slashrun = async (client, interaction) => {
 
     let threshold = options.getNumber("threshold", false);
     if (threshold > 50) threshold = 50;
-    if (threshold != 0 && threshold < 1) threshold = 1;
+    if (threshold && threshold < 1) threshold = 1;
     try {
         let index = options.getInteger("index", true);
         let bannedColor = settings.getBannedColor(guildId, index);
+        if (bannedColor === undefined) return interaction.reply({
+            content: `${index} is not a valid Id. Use \`/${exports.help.name} list\` to list the Id's.`, 
+            ephemeral: true
+        });
+        hex = bannedColor.hex_value;
         if (threshold) {
         if (threshold < 1) threshold = 1;
             settings.setBannedThreshold(guildId, index, threshold);
-            return interaction.reply({content: `Set \`${index}\`:\`${bannedColor.hex_value}\`'s threshold to \`${threshold}\`.`, ephemeral: true});
+            return interaction.reply({content: `Set \`${index}\`:\`${hex}\`'s threshold to \`${threshold}\`.`, ephemeral: true});
         }
-        settings.removeBannedColor(guildId, index)
-        return interaction.reply({content: `Removed \`${index}\`:\`${bannedColor.hex_value}\`.`, ephemeral: true});
+        settings.removeBannedColor(guildId, index);
+        return interaction.reply({content: `Removed \`${index}\`:\`${hex}\`.`, ephemeral: true});
     } catch (err) {
         if (err.name != "TypeError [COMMAND_INTERACTION_OPTION_NOT_FOUND]") throw err;
         if (threshold == 0) threshold = 1;
