@@ -124,13 +124,9 @@ exports.help = {
 exports.generateCommand = (isTest = false) => {
     if (!isTest) {
         return [
-
-        ]
-    } else {
-        return [
             new SlashCommandBuilder()
                 .setName(exports.help.name)
-                .setDescription("(Test) Ban a color from use")
+                .setDescription("Ban a color from use")
                 .addSubcommandGroup(group => group.setName("add")
                     .setDescription("Add a banned color")
                     .addSubcommand(subcommand => subcommand.setName("rgb")
@@ -196,6 +192,9 @@ exports.generateCommand = (isTest = false) => {
                     .setDescription("Lists what colors are banned")
                 )
                 .toJSON()
+        ]
+    } else {
+        return [
         ]
     }
 }

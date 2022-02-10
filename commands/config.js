@@ -75,13 +75,9 @@ exports.help = {
 exports.generateCommand = (isTest = false) => {
     if (!isTest) {
         return [
-
-        ]
-    } else {
-        return [
             new SlashCommandBuilder()
                 .setName(exports.help.name)
-                .setDescription('Replies with pong!')
+                .setDescription('Mess with the config')
                 .addSubcommand(subcommand => subcommand
                     .setName("get")
                     .setDescription("Retrieves the setting")
@@ -109,6 +105,9 @@ exports.generateCommand = (isTest = false) => {
                     )
                 )
                 .toJSON()
+        ]
+    } else {
+        return [
         ]
     }
 }
