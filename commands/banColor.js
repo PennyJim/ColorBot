@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const settings = require('../data/settings.js');
 const logger = require("../logger.js");
+const chalk  = require('chalk');
 const colorSpace = require('../colorSpace.js');
 const colors = require("../colors.json");
 
@@ -19,6 +20,7 @@ exports.slashrun = async (client, interaction) => {
     let guildId = interaction.guildId;
     let options = interaction.options;
 
+    //Resolve the color
     let hex, lab, newColor;
     if (options.getSubcommandGroup(false) == "add") {
         switch (options.getSubcommand(false))
@@ -58,7 +60,6 @@ exports.slashrun = async (client, interaction) => {
             case "named":
                 newColor = options.getString("color");
                 let tempColor = colors[newColor.toUpperCase()];
-                logger.debug(interaction.guild, interaction.member, tempColor);
                 if (tempColor !== undefined) {
                     hex = tempColor.hex;
                     lab = colorSpace.hex2lab(hex);
@@ -70,8 +71,8 @@ exports.slashrun = async (client, interaction) => {
                 logger.err(interaction.guild, interaction.member, `Subcommand "${options.getSubcommand(false)}" is not implemented.`);
                 return interaction.reply({content: `Subcommand "${options.getSubcommand(false)}" is not implemented.`, ephemeral: true});
         }
-    }
-    if (options.getSubcommand(false) == "list") {
+    } else if (options.getSubcommand(false) == "list") {
+        //List banned colors
         let bannedColors = settings.getBannedColors(guildId);
         let bannedList = "Id:Hex - Threshold"
         for (const color of bannedColors) {
@@ -80,34 +81,38 @@ exports.slashrun = async (client, interaction) => {
         return interaction.reply({content: bannedList, ephemeral: true});
     }
 
+    //Get and clamp the threshold to between 50 and 1
+    //Unless the threshold resolves for false, then leave it alone so it can delete
     let threshold = options.getNumber("threshold", false);
     if (threshold > 50) threshold = 50;
     if (threshold && threshold < 1) threshold = 1;
     try {
-        let index = options.getInteger("index", true);
+        //Get index and resolve that it's valid for the guild
+        let index = options.getInteger("index", true); //Throw error if no index
         let bannedColor = settings.getBannedColor(guildId, index);
         if (bannedColor === undefined) return interaction.reply({
             content: `${index} is not a valid Id. Use \`/${exports.help.name} list\` to list the Id's.`, 
             ephemeral: true
         });
         hex = bannedColor.hex_value;
-        if (threshold) {
-        if (threshold < 1) threshold = 1;
+        if (threshold) { //Update threshold if one is given
             settings.setBannedThreshold(guildId, index, threshold);
+            logger.log(interaction.guild, interaction.member, `${index}:${chalk.hex(hex)(hex)} has been updated`);
             return interaction.reply({content: `Set \`${index}\`:\`${hex}\`'s threshold to \`${threshold}\`.`, ephemeral: true});
         }
+        //Remove the banned color if threshold isn't given (or is 0)
         settings.removeBannedColor(guildId, index);
+        logger.log(interaction.guild, interaction.member, `${index}:${chalk.hex(hex)(hex)} has been deleted`);
         return interaction.reply({content: `Removed \`${index}\`:\`${hex}\`.`, ephemeral: true});
     } catch (err) {
         if (err.name != "TypeError [COMMAND_INTERACTION_OPTION_NOT_FOUND]") throw err;
-        if (threshold == 0) threshold = 1;
+        if (!threshold) threshold = 1;
 
+        //Add the banned color if no index was given
         let index = settings.addBannedColor(guildId, hex, lab, threshold).lastInsertRowid;
+        logger.log(interaction.guild, interaction.member, `${index}:${chalk.hex(hex)(hex)} has been added`);
         return interaction.reply({content: `Added \`${index}\`:\`${hex}\` to the banned colors with a threshold of \`${threshold}\`.`, ephemeral: true})
     }
-
-    
-    interaction.reply({content: "My ping is \`" + client.ws.ping + " ms\`", ephemeral: true});
 }
 
 exports.help = {

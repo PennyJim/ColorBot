@@ -14,18 +14,17 @@ exports.msgrun = async (client, message, args) => {
 }
 
 exports.slashrun = async (client, interaction) => {
-    logger.debug(interaction.guild, interaction.member, "Subcommand:", interaction.options.getSubcommand(false))
     if(!interaction.inGuild())
         return interaction.reply({content: "Has to be called in a server", ephemeral: true});
     if(interaction.member.roles.highest.comparePositionTo(settings.getMinRole(interaction.guildId)) < 0)
         return interaction.reply({content: "You do not have permission to do this", ephemeral: true});
-
 
     let roles = interaction.guild.roles;
     let botRole = roles.botRoleFor(client.user);
     let highestBotRole = interaction.guild.me.roles.highest;
     let options = interaction.options;
 
+    //Resolve the color
     let hex, lab, newColor;
     let skipAssign = false;
     switch (options.getSubcommand(false))
@@ -65,7 +64,6 @@ exports.slashrun = async (client, interaction) => {
         case "named":
             newColor = options.getString("color");
             let tempColor = colors[newColor.toUpperCase()];
-            logger.debug(interaction.guild, interaction.member, tempColor);
             if (tempColor !== undefined) {
                 hex = tempColor.hex;
                 lab = colorSpace.hex2lab(hex);
@@ -88,13 +86,18 @@ exports.slashrun = async (client, interaction) => {
         logger.debug(interaction.guild, interaction.member, "HEX:", chalk.hex(hex)(hex));
         logger.debug(interaction.guild, interaction.member, "LAB:", colorSpace.hex2lab(hex))
 
+        //Check against banned colors
         let bannedColors = settings.getBannedColors(interaction.guildId);
         for (const banned of bannedColors) {
             if (colorSpace.labDeltaE(lab, banned) <= banned[3]) {
+                logger.warn(interaction.guild, interaction.member, "Too close to a banned color");
                 return await interaction.reply({content: `Too close to the banned color ${banned[4]}`, ephemeral: true});
             }
         }
 
+        
+        //Look for the role to apply, or make it
+        //TODO: check to see if it's 'too close' to a pre-existing color and choose that instead
         newRole = roles.cache.find(r => r.name == hex && r.comparePositionTo(highestBotRole) < 0);
         if (newRole === undefined) {
             newRole = await roles.create({
@@ -123,11 +126,9 @@ exports.slashrun = async (client, interaction) => {
             }
             oldRoles.push(r.id)
         }
-    })
-    logger.debug(interaction.guild, interaction.member, oldRoles);
+    });
     
     if (!skipAssign) {
-        // await interaction.reply({content: `Your color has been changed to \`${newColor}\``, ephemeral: true});
         await interaction.reply({content: `Your color has been changed to \`${newColor}\`: <@&${newRole.id}>`, ephemeral: true})
     } else {
         await interaction.reply({content: "Your color has been reset", ephemeral: true});

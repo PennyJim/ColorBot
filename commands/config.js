@@ -19,6 +19,7 @@ exports.slashrun = async (client, interaction) => {
     switch (interaction.options.getSubcommand(false)) {
         case 'set':
             let newValue, updated = [];
+            //Update minrole if given
             if (newValue = interaction.options.get("minrole")) {
                 newValue = newValue.value;
                 // if (newValue == interaction.guildId) newValue = null;
@@ -26,12 +27,14 @@ exports.slashrun = async (client, interaction) => {
                 settings.setMinRole(interaction.guildId, newValue);
                 updated.push("minrole");
             }
+            //Update maxroles if given
             if (newValue = interaction.options.get("maxroles")) {
                 newValue = newValue.value;
                 logger.debug(interaction.guild, interaction.member, "new maxroles:", newValue);
                 settings.setMaxRoles(interaction.guildId, newValue);
                 updated.push("maxroles");
             }
+            //Update adminconfig if given
             if (newValue = interaction.options.get("adminconfig")) {
                 newValue = newValue.value;
                 logger.debug(interaction.guild, interaction.member, "new adminconfig:", newValue);
@@ -39,7 +42,7 @@ exports.slashrun = async (client, interaction) => {
                 updated.push("adminconfig");
             }
 
-            //Respond with what has been updated
+            //Respond with what has been updated (gramatically correct w/ oxford comma)
             if (updated.length > 1) {
                 let last = updated.pop();
                 logger.log(interaction.guild, interaction.member, `Updated ${updated.join(', ')}${updated.length > 1 ? "," : ""} and`, last);
@@ -53,6 +56,7 @@ exports.slashrun = async (client, interaction) => {
             }
             break;
         case 'get':
+            //TODO: implement config get
             break;
         default:
             logger.err(interaction.guild, interaction.member, `Subcommand "${options.getSubcommand(false)}" is not implemented.`);
