@@ -35,7 +35,7 @@ exports.slashrun = async (client, interaction) => {
                 updated.push("maxroles");
             }
             //Update adminconfig if given
-            if (newValue = interaction.options.get("adminconfig")) {
+            if (newValue = interaction.options.get("adminconfig") && interaction.member.id == interaction.guild.ownerId) {
                 newValue = newValue.value;
                 logger.debug(interaction.guild, interaction.member, "new adminconfig:", newValue);
                 settings.setCanAdminConfig(interaction.guildId, newValue);
