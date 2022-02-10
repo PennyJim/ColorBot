@@ -1,19 +1,20 @@
 const db = require('better-sqlite3')('./data/rateLimit.db');
 const SqliteError = require('better-sqlite3/lib/sqlite-error');
 const nodeCron = require('node-cron');
+const { debug } = require('../logger');
 // const settings = require('./settings.js'); //Might need?
 
 // db.pragma('wal_autocheckpoint = 500'); //More write heavy so keep default 1000?
 db.pragma('mmap_size = 30000000000'); //Use memory mapping instead of r/w calls
 db.pragma('journal_mode = WAL'); //Increases performance, apparently
-nodeCron.schedule('0 0 */12 * * *', () => {
+let bidaily = nodeCron.schedule('0 0 */12 * * *', () => {
     //Force a checkpoint and then optimize every 12 hours
     db.pragma('wal_checkpoint(truncate)');
     db.pragma('optimize');
 });
 
 // //Keep the db's pretty up to date for debugging
-// nodeCron.schedule('*/2 * * * *', () => db.pragma('wal_checkpoint(full)'));
+// let debug = nodeCron.schedule('*/2 * * * *', () => db.pragma('wal_checkpoint(full)'));
 
 //Drop tables because they're now out of date
 // db.prepare(`DROP TABLE IF EXISTS buckets`).run();
@@ -197,7 +198,7 @@ const cleanBuckets = db.prepare(`
         )
 `)
 //Clean the buckets at the top of every hour
-nodeCron.schedule('0 0 * * * *', cleanBuckets.run);
+let hourly = nodeCron.schedule('0 0 * * * *', cleanBuckets.run);
 
 const newBucket = db.prepare(`
     INSERT INTO buckets (
@@ -312,6 +313,10 @@ exports.useConfig = (user_id) => {
     return useLimit(user_id, 3);
 }
 exports.close = () => {
+    bidaily.stop();
+    hourly.stop();
+    // debug.stop();
+
     //Update *all* buckets
     db.prepare(`
     WITH calc AS (

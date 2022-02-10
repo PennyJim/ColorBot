@@ -7,14 +7,14 @@ let guildCache = {}; //Might be better uncached?
 db.pragma('wal_autocheckpoint = 500'); //Since it's read-heavy, smaller allowed wal size
 db.pragma('mmap_size = 30000000000'); //Use memory mapping instead of r/w calls
 db.pragma('journal_mode = WAL'); //Increases performance, apparently
-nodeCron.schedule('0 0 */12 * * *', () => {
+let bidaily = nodeCron.schedule('0 0 */12 * * *', () => {
     //Force a checkpoint and then optimize every 12 hours
     db.pragma('wal_checkpoint(truncate)');
     db.pragma('optimize');
 });
 
 // //Keep the db's pretty up to date for debugging
-// nodeCron.schedule('*/2 * * * *', () => db.pragma('wal_checkpoint(full)'));
+// let debug = nodeCron.schedule('*/2 * * * *', () => db.pragma('wal_checkpoint(full)'));
 //Drop Tables for testing purposes 
 // db.prepare(`DROP TABLE IF EXISTS banned_colors  `).run();
 // db.prepare(`DROP TABLE IF EXISTS guilds         `).run();
@@ -320,6 +320,9 @@ exports.removeBannedColor = (guild_id, id) => {
     })
 }
 exports.close = () => {
+    bidaily.stop();
+    // debug.stop();
+
     db.pragma('vacuum');
     db.pragma('optimize');
     db.close();

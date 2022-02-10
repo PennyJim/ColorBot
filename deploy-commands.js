@@ -26,3 +26,4 @@ for (const server of testServers) {
         .then(() => logger.log({id: server}, null, 'Successfully registered testing application commands.'))
         .catch(error => logger.err({id: server}, null, error));
 }
+require("./data/settings").close();

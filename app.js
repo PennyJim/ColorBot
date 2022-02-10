@@ -23,8 +23,6 @@ const closeFunc = () => {
     logger.log(null, null, "Closing processes");
     client.destroy();
     logger.log(null, null, "Discord client destroyed");
-    for (const task of nodeCron.getTasks()) task.stop();
-    logger.log(null, null, "Node-Cron Stoppped");
     rateLimiter.close();
     logger.log(null, null, "Rate limit database closed");
     settings.close();
