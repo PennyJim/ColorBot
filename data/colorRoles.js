@@ -29,6 +29,44 @@ db.prepare(`
     ) WITHOUT ROWID
 `).run();
 
+//TODO: fix
+console.log(db.prepare(`
+SELECT
+	POWER((SELECT
+		POWER(calc.deltalklsl, 2) + POWER(calc.deltackcsc, 2) + POWER(calc.deltahkhsh, 2) as deltaesq
+	FROM
+		(SELECT
+			calc.deltal as deltalklsl,
+			calc.deltac / calc.sc as deltackcsc,
+			CASE
+				WHEN calc.deltah < 0 THEN 0
+				ELSE calc.deltah / calc.sh
+			END AS deltahkhsh
+		FROM
+			(SELECT
+				POWER(calc.deltaa, 2) + POWER(calc.deltab, 2) + POWER(calc.c1 - calc.c2, 2) AS deltah,
+				deltal,
+				calc.c1 - calc.c2 AS deltac,
+				1.0 + (1.045 * calc.c1) AS sc,
+				1.0 + (1.015 * calc.c1) AS sh
+			FROM
+				(SELECT
+					new.l_value - old.l_value AS deltal,
+					new.a_value - old.a_value AS deltaa,
+					new.b_value - old.b_value AS deltab,
+					SQRT(POWER(new.a_value, 2) + POWER(new.b_value, 2)) AS c1,
+					SQRT(POWER(old.a_value, 2) + POWER(old.b_value, 2)) AS c2) AS calc) AS calc) AS calc), 2) as deltae
+FROM
+	(SELECT
+		53.23288178584245 as l_value,
+		80.10930952982204 as a_value,
+		67.22006831026425 as b_value) as old,
+	(SELECT
+		53.85596218087315 as l_value,
+		81.80288058559398 as a_value,
+		31.565158730632948 as b_value) as new;
+`).get());
+
 exports.setup = (client) => {
 
 }
