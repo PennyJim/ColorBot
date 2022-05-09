@@ -1,6 +1,7 @@
 'use strict';
 const { Client, Intents, Collection } = require('discord.js');
 const rateLimiter = require('./data/rateLimiter.js');
+const colorRoles = require('./data/colorRoles.js');
 const settings = require('./data/settings.js');
 const config = require("./config.json");
 const logger = require("./logger.js");
@@ -23,6 +24,8 @@ const closeFunc = () => {
     logger.log(null, null, "Closing processes");
     client.destroy();
     logger.log(null, null, "Discord client destroyed");
+    colorRoles.close();
+    logger.log(null, null, "Color Roles database closed");
     rateLimiter.close();
     logger.log(null, null, "Rate limit database closed");
     settings.close();

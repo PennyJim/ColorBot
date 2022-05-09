@@ -1,8 +1,6 @@
 const db = require('better-sqlite3')('./data/rateLimit.db');
 const SqliteError = require('better-sqlite3/lib/sqlite-error');
 const nodeCron = require('node-cron');
-const { debug } = require('../logger');
-// const settings = require('./settings.js'); //Might need?
 
 // db.pragma('wal_autocheckpoint = 500'); //More write heavy so keep default 1000?
 db.pragma('mmap_size = 30000000000'); //Use memory mapping instead of r/w calls
@@ -174,7 +172,6 @@ db.prepare(`
             AND limit_id = NEW.limit_id;
     END;
 `).run();
-//Make db use concurrent
 
 
 const getLimitID = db.prepare(`

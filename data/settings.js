@@ -9,6 +9,7 @@ db.pragma('mmap_size = 30000000000'); //Use memory mapping instead of r/w calls
 db.pragma('journal_mode = WAL'); //Increases performance, apparently
 let bidaily = nodeCron.schedule('0 0 */12 * * *', () => {
     //Force a checkpoint and then optimize every 12 hours
+    guildCache = {};
     db.pragma('wal_checkpoint(truncate)');
     db.pragma('optimize');
 });
