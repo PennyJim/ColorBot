@@ -32,7 +32,7 @@ db.prepare(`
 //TODO: fix
 console.log(db.prepare(`
 SELECT
-	POWER((SELECT
+	SQRT((SELECT
 		POWER(calc.deltalklsl, 2) + POWER(calc.deltackcsc, 2) + POWER(calc.deltahkhsh, 2) as deltaesq
 	FROM
 		(SELECT
@@ -55,7 +55,7 @@ SELECT
 					new.a_value - old.a_value AS deltaa,
 					new.b_value - old.b_value AS deltab,
 					SQRT(POWER(new.a_value, 2) + POWER(new.b_value, 2)) AS c1,
-					SQRT(POWER(old.a_value, 2) + POWER(old.b_value, 2)) AS c2) AS calc) AS calc) AS calc), 2) as deltae
+					SQRT(POWER(old.a_value, 2) + POWER(old.b_value, 2)) AS c2) AS calc) AS calc) AS calc)) as deltae
 FROM
 	(SELECT
 		53.23288178584245 as l_value,
@@ -66,9 +66,18 @@ FROM
 		81.80288058559398 as a_value,
 		31.565158730632948 as b_value) as new;
 `).get());
+console.log(require('../colorSpace.js').labDeltaE([
+        53.23288178584245,
+        80.10930952982204,
+        67.22006831026425
+        ],[
+        53.85596218087315,
+        81.80288058559398,
+        31.565158730632948
+    ]));
 
 exports.setup = (client) => {
-
+    
 }
 
 exports.close = () => {
@@ -79,3 +88,5 @@ exports.close = () => {
     db.close();
     return delete exports;
 }
+
+exports.close();
