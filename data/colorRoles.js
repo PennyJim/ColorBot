@@ -29,10 +29,34 @@ db.prepare(`
     ) WITHOUT ROWID
 `).run();
 
-//TODO: fix
+let labA = [
+	53.23288178584245,
+	80.10930952982204,
+	67.22006831026425
+]
+let labB = [
+	53.85596218087315,
+	81.80288058559398,
+	31.565158730632948
+]
+let testValues = `
+(SELECT
+	${labA[0]} as l_value,
+	${labA[1]} as a_value,
+	${labA[2]} as b_value) as new,
+(SELECT
+	${labB[0]} as l_value,
+	${labB[1]} as a_value,
+	${labB[2]} as b_value) as old
+`
 console.log(db.prepare(`
 SELECT
-	SQRT((SELECT
+	CASE
+		WHEN calc.deltaesq < 0 THEN 0
+		ELSE SQRT(calc.deltaesq)
+	END AS deltae
+FROM
+	(SELECT
 		POWER(calc.deltalklsl, 2) + POWER(calc.deltackcsc, 2) + POWER(calc.deltahkhsh, 2) as deltaesq
 	FROM
 		(SELECT
@@ -40,41 +64,26 @@ SELECT
 			calc.deltac / calc.sc as deltackcsc,
 			CASE
 				WHEN calc.deltah < 0 THEN 0
-				ELSE calc.deltah / calc.sh
+				ELSE SQRT(calc.deltah) / calc.sh
 			END AS deltahkhsh
 		FROM
 			(SELECT
-				POWER(calc.deltaa, 2) + POWER(calc.deltab, 2) + POWER(calc.c1 - calc.c2, 2) AS deltah,
+				POWER(calc.deltaa, 2) + POWER(calc.deltab, 2) - POWER(calc.c1 - calc.c2, 2) AS deltah,
 				deltal,
 				calc.c1 - calc.c2 AS deltac,
-				1.0 + (1.045 * calc.c1) AS sc,
-				1.0 + (1.015 * calc.c1) AS sh
+				1.0 + (0.045 * calc.c1) AS sc,
+				1.0 + (0.015 * calc.c1) AS sh
 			FROM
 				(SELECT
 					new.l_value - old.l_value AS deltal,
 					new.a_value - old.a_value AS deltaa,
 					new.b_value - old.b_value AS deltab,
 					SQRT(POWER(new.a_value, 2) + POWER(new.b_value, 2)) AS c1,
-					SQRT(POWER(old.a_value, 2) + POWER(old.b_value, 2)) AS c2) AS calc) AS calc) AS calc)) as deltae
-FROM
-	(SELECT
-		53.23288178584245 as l_value,
-		80.10930952982204 as a_value,
-		67.22006831026425 as b_value) as old,
-	(SELECT
-		53.85596218087315 as l_value,
-		81.80288058559398 as a_value,
-		31.565158730632948 as b_value) as new;
+					SQRT(POWER(old.a_value, 2) + POWER(old.b_value, 2)) AS c2
+				FROM
+					${testValues}) AS calc) AS calc) AS calc) as calc;
 `).get());
-console.log(require('../colorSpace.js').labDeltaE([
-        53.23288178584245,
-        80.10930952982204,
-        67.22006831026425
-        ],[
-        53.85596218087315,
-        81.80288058559398,
-        31.565158730632948
-    ]));
+console.log(require('../colorSpace.js').labDeltaE(labA, labB));
 
 exports.setup = (client) => {
     
