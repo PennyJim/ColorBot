@@ -126,20 +126,21 @@ function addRoleDB(guild_id, role) {
 }
 
 async function makeRole(guild, hex, reason) {
-	let newRole = await guild.roles.create({
-		name: hex,
-		color: hex,
-		mentionable: false,
-		hoist: false,
-		position: guild.roles.botRoleFor(guild.client.user).position,
-		permissions: [],
-		reason: reason
-	});
+	// let newRole = await guild.roles.create({
+	// 	name: hex,
+	// 	color: hex,
+	// 	mentionable: false,
+	// 	hoist: false,
+	// 	position: guild.roles.botRoleFor(guild.client.user).position,
+	// 	permissions: [],
+	// 	reason: reason
+	// });
+
 	// For testing without *actual* roles
-	// let newRole = {
-	// 	id: parseInt(hex.slice(1), 16).toString().padStart(18, "0"),
-	//  name: hex
-	// }
+	let newRole = {
+		id: parseInt(hex.slice(1), 16).toString().padStart(18, "0"),
+	 name: hex
+	}
 	addRoleDB(guild.id, newRole);
 	return newRole;
 }
@@ -382,4 +383,22 @@ client.once('ready', async () => {
 
 	exports.close();
 });
+
+client.on('rateLimit', (info) => {
+	let hour, min, sec;
+	if (info.timeout) {
+		sec = info.timeout / 1000
+		if (sec > 60) {
+			min = Math.floor(sec / 60);
+			sec = sec % 60
+			if (min > 60) {
+				hour =  Math.floor(min / 60)
+				min = min % 60
+			}
+		}
+	}
+	console.log(`${info.global ? 'Global ' : ''}Rate limit hit, \n\t` +
+	`Timeout: ${hour ? `${hour}h ` : ''}${min ? `${min}m ` : ''}${sec.toFixed(3)}s\n\t` +
+	`Limit: ${info.limit}`);
+})
 client.login(process.env.TOKEN);
