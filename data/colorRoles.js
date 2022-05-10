@@ -1,4 +1,4 @@
-const db = require('better-sqlite3')('./data/settings.db');
+const db = require('better-sqlite3')('./data/colorRoles.db');
 const nodeCron = require('node-cron');
 const { debug } = require('../logger');
 const config = require("../config.json");
@@ -29,6 +29,61 @@ db.prepare(`
     ) WITHOUT ROWID
 `).run();
 
+const addRole = db.prepare(`
+	INSERT INTO color_roles (
+		role_id,
+		guild_id,
+		hex_value,
+		l_value,
+		a_value,
+		b_value
+	)
+	VALUES (
+		$role_id,
+		$guild_id,
+		$hex_value,
+		$l_value,
+		$a_value,
+		$b_value
+	);
+`)
+const delRole = db.prepare(`
+	DELETE FROM color_roles
+	WHERE
+		guild_id = $guild_id
+		AND role_id = $role_id
+`)
+const getRole = db.prepare(`
+	SELECT
+		*
+	FROM
+		color_roles
+	WHERE
+		guild_id = $guild_id
+		AND role_id = $role_id;
+`)
+const getRoles = db.prepare(`
+	SELECT
+		*
+	FROM
+		color_roles
+	WHERE
+		guild_id = $guild_id;
+`).raw(true);
+
+exports.setup = async (client) => {
+}
+
+exports.close = () => {
+    bidaily.stop();
+
+    db.pragma('vacuum');
+    db.pragma('optimize');
+    db.close();
+    return delete exports;
+}
+
+//Testing stuff
 let labA = [
 	53.23288178584245,
 	80.10930952982204,
@@ -49,53 +104,42 @@ let testValues = `
 	${labB[1]} as a_value,
 	${labB[2]} as b_value) as old
 `
-console.log(db.prepare(`
-SELECT
-	CASE
-		WHEN calc.deltaesq < 0 THEN 0
-		ELSE SQRT(calc.deltaesq)
-	END AS deltae
-FROM
-	(SELECT
-		POWER(calc.deltalklsl, 2) + POWER(calc.deltackcsc, 2) + POWER(calc.deltahkhsh, 2) as deltaesq
-	FROM
-		(SELECT
-			calc.deltal as deltalklsl,
-			calc.deltac / calc.sc as deltackcsc,
-			CASE
-				WHEN calc.deltah < 0 THEN 0
-				ELSE SQRT(calc.deltah) / calc.sh
-			END AS deltahkhsh
-		FROM
-			(SELECT
-				POWER(calc.deltaa, 2) + POWER(calc.deltab, 2) - POWER(calc.c1 - calc.c2, 2) AS deltah,
-				deltal,
-				calc.c1 - calc.c2 AS deltac,
-				1.0 + (0.045 * calc.c1) AS sc,
-				1.0 + (0.015 * calc.c1) AS sh
-			FROM
-				(SELECT
-					new.l_value - old.l_value AS deltal,
-					new.a_value - old.a_value AS deltaa,
-					new.b_value - old.b_value AS deltab,
-					SQRT(POWER(new.a_value, 2) + POWER(new.b_value, 2)) AS c1,
-					SQRT(POWER(old.a_value, 2) + POWER(old.b_value, 2)) AS c2
-				FROM
-					${testValues}) AS calc) AS calc) AS calc) as calc;
-`).get());
-console.log(require('../colorSpace.js').labDeltaE(labA, labB));
+// console.log(db.prepare(`
+// SELECT
+// 	CASE
+// 		WHEN calc.deltaesq < 0 THEN 0
+// 		ELSE SQRT(calc.deltaesq)
+// 	END AS deltae
+// FROM
+// 	(SELECT
+// 		POWER(calc.deltalklsl, 2) + POWER(calc.deltackcsc, 2) + POWER(calc.deltahkhsh, 2) as deltaesq
+// 	FROM
+// 		(SELECT
+// 			calc.deltal as deltalklsl,
+// 			calc.deltac / calc.sc as deltackcsc,
+// 			CASE
+// 				WHEN calc.deltah < 0 THEN 0
+// 				ELSE SQRT(calc.deltah) / calc.sh
+// 			END AS deltahkhsh
+// 		FROM
+// 			(SELECT
+// 				POWER(calc.deltaa, 2) + POWER(calc.deltab, 2) - POWER(calc.c1 - calc.c2, 2) AS deltah,
+// 				deltal,
+// 				calc.c1 - calc.c2 AS deltac,
+// 				1.0 + (0.045 * calc.c1) AS sc,
+// 				1.0 + (0.015 * calc.c1) AS sh
+// 			FROM
+// 				(SELECT
+// 					new.l_value - old.l_value AS deltal,
+// 					new.a_value - old.a_value AS deltaa,
+// 					new.b_value - old.b_value AS deltab,
+// 					SQRT(POWER(new.a_value, 2) + POWER(new.b_value, 2)) AS c1,
+// 					SQRT(POWER(old.a_value, 2) + POWER(old.b_value, 2)) AS c2
+// 				FROM
+// 					${testValues}) AS calc) AS calc) AS calc) as calc;
+// `).get());
 
-exports.setup = (client) => {
-    
-}
+// console.log(getRole.get({guild_id: "123456789123456789", role_id: "123456789123456789"}));
 
-exports.close = () => {
-    bidaily.stop();
 
-    db.pragma('vacuum');
-    db.pragma('optimize');
-    db.close();
-    return delete exports;
-}
 
-exports.close();
