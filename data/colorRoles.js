@@ -72,6 +72,16 @@ const getRoles = db.prepare(`
 		guild_id = $guild_id;
 `).raw(true);
 
+const getHex = db.prepare(`
+SELECT
+	*
+FROM
+	color_roles
+WHERE
+	guild_id = $guild_id
+	AND hex_value = $hex_value
+`);
+
 let hexRegex = /^#[\da-f]{6}$/i;
 exports.setup = async (client) => {
     let guilds = await client.guilds.fetch();
@@ -104,6 +114,51 @@ exports.setup = async (client) => {
 	})
 }
 
+function addRoleDB(guild_id, role) {
+	let lab = colorSpace.hex2lab(role.name);
+	addRole.run({
+		role_id: role.id,
+		guild_id: guild_id,
+		hex_value: role.name,
+		l_value: lab[0],
+		a_value: lab[1],
+		b_value: lab[2]
+	})
+}
+
+async function makeRole(guild, hex, reason) {
+	let newRole = await guild.roles.create({
+		name: hex,
+		color: hex,
+		mentionable: false,
+		hoist: false,
+		position: guild.roles.botRoleFor(guild.client.user).position,
+		permissions: [],
+		reason: reason
+	});
+	// For testing without *actual* roles
+	// let newRole = {
+	// 	id: parseInt(hex.slice(1), 16).toString().padStart(18, "0"),
+	//  name: hex
+	// }
+	addRoleDB(guild.id, newRole);
+	return newRole;
+}
+
+exports.requestNewRole = async (guild, hex, reason = "New color role requested") => {
+	let role = getHex.get({guild_id: guild.id, hex_value: hex});
+	if (role !== undefined) {
+		role = guild.roles.resolve(role.role_id);
+		if (role !== undefined) return role;
+	}
+
+	role = guild.roles.cache.find(role => role.name === hex);
+	if (role !== undefined) {
+		addRoleDB(guild.id, role);
+		return role;
+	}
+
+	makeRole(guild, hex, reason);
 }
 
 exports.close = () => {
