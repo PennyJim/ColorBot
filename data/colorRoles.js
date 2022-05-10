@@ -116,26 +116,26 @@ exports.close = () => {
 }
 
 //Testing stuff
-let labA = [
-	53.23288178584245,
-	80.10930952982204,
-	67.22006831026425
-]
-let labB = [
-	53.85596218087315,
-	81.80288058559398,
-	31.565158730632948
-]
-let testValues = `
-(SELECT
-	${labA[0]} as l_value,
-	${labA[1]} as a_value,
-	${labA[2]} as b_value) as new,
-(SELECT
-	${labB[0]} as l_value,
-	${labB[1]} as a_value,
-	${labB[2]} as b_value) as old
-`
+// let labA = [
+// 	53.23288178584245,
+// 	80.10930952982204,
+// 	67.22006831026425
+// ]
+// let labB = [
+// 	53.85596218087315,
+// 	81.80288058559398,
+// 	31.565158730632948
+// ]
+// let testValues = `
+// (SELECT
+// 	${labA[0]} as l_value,
+// 	${labA[1]} as a_value,
+// 	${labA[2]} as b_value) as new,
+// (SELECT
+// 	${labB[0]} as l_value,
+// 	${labB[1]} as a_value,
+// 	${labB[2]} as b_value) as old
+// `
 // console.log(db.prepare(`
 // SELECT
 // 	CASE
@@ -174,4 +174,15 @@ let testValues = `
 // console.log(getRole.get({guild_id: "123456789123456789", role_id: "123456789123456789"}));
 
 
+const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay));
+require('dotenv').config()
+const { Client, Intents, Collection } = require('discord.js');
+const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGES] });
+client.once('ready', async () => {
+	await exports.setup(client);
+	await sleep(1000);
+	client.destroy();
 
+	exports.close();
+});
+client.login(process.env.TOKEN);
