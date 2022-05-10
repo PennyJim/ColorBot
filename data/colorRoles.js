@@ -170,6 +170,73 @@ exports.close = () => {
 }
 
 //Testing stuff
+//Sql find closest color
+const findClosestSQL = db.prepare(`
+SELECT
+	*,
+	(SELECT
+		CASE
+			WHEN calc.deltaesq < 0 THEN 0
+			ELSE SQRT(calc.deltaesq)
+		END AS deltae
+	FROM
+		(SELECT
+			POWER(calc.deltalklsl, 2) + POWER(calc.deltackcsc, 2) + POWER(calc.deltahkhsh, 2) as deltaesq
+		FROM
+			(SELECT
+				calc.deltal as deltalklsl,
+				calc.deltac / calc.sc as deltackcsc,
+				CASE
+					WHEN calc.deltah < 0 THEN 0
+					ELSE SQRT(calc.deltah) / calc.sh
+				END AS deltahkhsh
+			FROM
+				(SELECT
+					POWER(calc.deltaa, 2) + POWER(calc.deltab, 2) - POWER(calc.c1 - calc.c2, 2) AS deltah,
+					deltal,
+					calc.c1 - calc.c2 AS deltac,
+					1.0 + (0.045 * calc.c1) AS sc,
+					1.0 + (0.015 * calc.c1) AS sh
+				FROM
+					(SELECT
+						new.l_value - old.l_value AS deltal,
+						new.a_value - old.a_value AS deltaa,
+						new.b_value - old.b_value AS deltab,
+						SQRT(POWER(new.a_value, 2) + POWER(new.b_value, 2)) AS c1,
+						SQRT(POWER(old.a_value, 2) + POWER(old.b_value, 2)) AS c2
+					FROM
+						(SELECT
+							$l_value as l_value,
+							$a_value as a_value,
+							$b_value as b_value)
+						AS new)
+					AS calc)
+				AS calc)
+			AS calc)
+		AS calc) as deltae
+FROM
+	color_roles as old
+WHERE
+	guild_id = $guild_id
+ORDER BY
+	deltae ASC
+`)
+//Javascript find closest color
+const findClosestJS = (guildid, lab) => {
+	let roles = getRoles.all({guild_id: guildid})
+	let closestIndex = 0;
+	let closestDeltaE = colorSpace.labDeltaE(lab, roles[closestIndex].slice(-3))
+	for (let i = 1; i < roles.length; i++) {
+		if (closestDeltaE < 0.1) { return roles[closestIndex]; }
+		let newDeltaE = colorSpace.labDeltaE(lab, roles[i].slice(-3));
+		if (newDeltaE < closestDeltaE) {
+			closestIndex = i;
+			closestDeltaE = newDeltaE;
+		}
+	}
+	return roles[closestIndex];
+}
+
 // let labA = [
 // 	53.23288178584245,
 // 	80.10930952982204,
