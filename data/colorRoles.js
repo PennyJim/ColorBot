@@ -146,8 +146,10 @@ async function makeRole(guild, hex, reason) {
 
 exports.requestNewRole = async (guild, hex, reason = "New color role requested") => {
 	let role = getHex.get({guild_id: guild.id, hex_value: hex});
+	console.log("1:", role);
 	if (role !== undefined) {
 		role = guild.roles.resolve(role.role_id);
+		console.log("2:", role)
 		if (role !== undefined) return role;
 	}
 
@@ -301,50 +303,77 @@ const { Client, Intents, Collection } = require('discord.js');
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGES] });
 client.once('ready', async () => {
 	await exports.setup(client);
+	let guild = await client.guilds.fetch("770338797543096381");
+	console.log(getHex.get({guild_id: guild.id, hex_value: "#ABCDEF"}));
+	let reason = "Testing the colorRoles Database"
+	for (let i = 0; i < 16; i++) {
+		let iString = i.toString(16).toUpperCase();
+		await exports.requestNewRole(guild, `#FF00${iString}${iString}`, reason);
+	}
+	for (let i = 14; i > 0; i--) {
+		let iString = i.toString(16).toUpperCase();
+		await exports.requestNewRole(guild, `#${iString}${iString}00FF`, reason);
+	}
+	for (let i = 0; i < 16; i++) {
+		let iString = i.toString(16).toUpperCase();
+		await exports.requestNewRole(guild, `#00${iString}${iString}FF`, reason);
+	}
+	for (let i = 14; i > 0; i--) {
+		let iString = i.toString(16).toUpperCase();
+		await exports.requestNewRole(guild, `#00FF${iString}${iString}`, reason);
+	}
+	for (let i = 0; i < 16; i++) {
+		let iString = i.toString(16).toUpperCase();
+		await exports.requestNewRole(guild, `#${iString}${iString}FF00`, reason);
+	}
+	for (let i = 14; i > 0; i--) {
+		let iString = i.toString(16).toUpperCase();
+		await exports.requestNewRole(guild, `#FF${iString}${iString}00`, reason);
+	}
 	await sleep(1000);
 	client.destroy();
 
-	const {performance} = require('perf_hooks');
+	// const {performance} = require('perf_hooks');
 
-	//Use random lab of (0-100, -128-127, -128-127)
-	let iterations = 10000, agrees = 0, disagrees = 0;
-	let randLAB = [], closestSQL = [], closestJS = [];
-	let preTime = performance.now();
-	for (let i = 0; i < iterations; i++) {
-		randLAB[randLAB.length] = [
-			Math.random() * 100,
-			Math.random() * 255 - 128,
-			Math.random() * 255 - 128
-		]
-	}
-	let startTime = performance.now();
-	for (let i = 0; i < iterations; i++) {
-		closestSQL[i] = findClosestSQL.get({
-			guild_id: "770338797543096381",
-			l_value: randLAB[i][0],
-			a_value: randLAB[i][1],
-			b_value: randLAB[i][2]
-		}).role_id;
-	}
-	let midTime = performance.now();
-	for (let i = 0; i < iterations; i++) {
-		closestJS[i] = findClosestJS("770338797543096381", randLAB[i])[0];
-	}
-	let endTime = performance.now();
-	for (let i = 0; i < iterations; i++) {
-		if (closestSQL[i] == closestJS[i]) {
-			agrees++;
-		} else {
-			disagrees++;
-		}
-	}
-	let finalTime = performance.now();
-	console.log(`It took ${startTime - preTime} milliseconds to setup the ${iterations} shared random LAB values`);
-	console.log(`It took ${midTime - startTime} milliseconds to do the sql function ${iterations} times`);
-	console.log(`It took ${endTime - midTime} milliseconds to do the for loop ${iterations} times`);
-	console.log(`It took ${finalTime - endTime} milliseconds to check their work`);
-	console.log(`Of ${iterations} iterations, they agreed ${agrees} times, and disagreed ${disagrees} times.`);
-	console.log(`Marking a ${agrees / iterations * 100}% 'success' rate.`);
+	// //Use random lab of (0-100, -128-127, -128-127)
+	// let iterations = 10000, agrees = 0, disagrees = 0;
+	// let randLAB = [], closestSQL = [], closestJS = [];
+	// let preTime = performance.now();
+	// for (let i = 0; i < iterations; i++) {
+	// 	randLAB[randLAB.length] = [
+	// 		Math.random() * 100,
+	// 		Math.random() * 255 - 128,
+	// 		Math.random() * 255 - 128
+	// 	]
+	// }
+	// let startTime = performance.now();
+	// for (let i = 0; i < iterations; i++) {
+	// 	closestSQL[i] = findClosestSQL.get({
+	// 		guild_id: "770338797543096381",
+	// 		l_value: randLAB[i][0],
+	// 		a_value: randLAB[i][1],
+	// 		b_value: randLAB[i][2]
+	// 	}).role_id;
+	// }
+	// let midTime = performance.now();
+	// for (let i = 0; i < iterations; i++) {
+	// 	closestJS[i] = findClosestJS("770338797543096381", randLAB[i])[0];
+	// }
+	// let endTime = performance.now();
+	// for (let i = 0; i < iterations; i++) {
+	// 	if (closestSQL[i] == closestJS[i]) {
+	// 		agrees++;
+	// 	} else {
+	// 		disagrees++;
+	// 	}
+	// }
+	// let finalTime = performance.now();
+	// console.log(`It took ${startTime - preTime} milliseconds to setup the ${iterations} shared random LAB values`);
+	// console.log(`It took ${midTime - startTime} milliseconds to do the sql function ${iterations} times`);
+	// console.log(`It took ${endTime - midTime} milliseconds to do the for loop ${iterations} times`);
+	// console.log(`It took ${finalTime - endTime} milliseconds to check their work`);
+	// console.log(`Of ${iterations} iterations, they agreed ${agrees} times, and disagreed ${disagrees} times.`);
+	// console.log(`Marking a ${agrees / iterations * 100}% 'success' rate.`);
 
 	exports.close();
 });
