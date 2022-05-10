@@ -85,33 +85,32 @@ WHERE
 let hexRegex = /^#[\da-f]{6}$/i;
 exports.setup = async (client) => {
     let guilds = await client.guilds.fetch();
-	guilds.forEach((g) => {
-		g.fetch().then(async (guild) => {
-			let roles = await guild.roles.fetch(null, {force: true});
-			let me = await guild.me.fetch(true);
-			roles.forEach((r, rid) => {
-				if (me.roles.highest.comparePositionTo(r) > 0 && r.name.match(hexRegex)) {
-					let dbPK = {guild_id: guild.id, role_id: rid};
-					let dbRole = getRole.get(dbPK)
-					if (dbRole != undefined && dbRole.hex_value !== r.name) {
-						delRole.run(dbPK)
-						dbRole = undefined;
-					}
-					if (dbRole === undefined) {
-						let lab = colorSpace.hex2lab(r.name);
-						addRole.run({
-							role_id: rid,
-							guild_id: guild.id,
-							hex_value: r.name,
-							l_value: lab[0],
-							a_value: lab[1],
-							b_value: lab[2]
-						});
-					}
+	guilds.forEach(async (g, gid) => {
+		g = await g.fetch();
+		let roles = await g.roles.fetch(null, {force: true});
+		let me = await g.me.fetch(true);
+		roles.forEach((r, rid) => {
+			if (me.roles.highest.comparePositionTo(r) > 0 && r.name.match(hexRegex)) {
+				let dbPK = {guild_id: gid, role_id: rid};
+				let dbRole = getRole.get(dbPK)
+				if (dbRole != undefined && dbRole.hex_value !== r.name) {
+					delRole.run(dbPK)
+					dbRole = undefined;
 				}
-			})
-		}, (e) => {console.error(e)});
-	})
+				if (dbRole === undefined) {
+					let lab = colorSpace.hex2lab(r.name);
+					addRole.run({
+						role_id: rid,
+						guild_id: gid,
+						hex_value: r.name,
+						l_value: lab[0],
+						a_value: lab[1],
+						b_value: lab[2]
+					});
+				}
+			}
+		})
+	}, (e) => {console.error(e)});
 }
 
 function addRoleDB(guild_id, role) {
@@ -158,7 +157,7 @@ exports.requestNewRole = async (guild, hex, reason = "New color role requested")
 		return role;
 	}
 
-	makeRole(guild, hex, reason);
+	return await makeRole(guild, hex, reason);
 }
 
 exports.close = () => {
