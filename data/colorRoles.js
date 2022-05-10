@@ -85,11 +85,11 @@ WHERE
 let hexRegex = /^#[\da-f]{6}$/i;
 exports.setup = async (client) => {
     let guilds = await client.guilds.fetch();
-	guilds.forEach(async (g, gid) => {
+	for (let [gid, g] of guilds) {
 		g = await g.fetch();
 		let roles = await g.roles.fetch(null, {force: true});
 		let me = await g.me.fetch(true);
-		roles.forEach((r, rid) => {
+		for (const [rid, r] of roles) {
 			if (me.roles.highest.comparePositionTo(r) > 0 && r.name.match(hexRegex)) {
 				let dbPK = {guild_id: gid, role_id: rid};
 				let dbRole = getRole.get(dbPK)
@@ -109,8 +109,8 @@ exports.setup = async (client) => {
 					});
 				}
 			}
-		})
-	}, (e) => {console.error(e)});
+		}
+	}
 }
 
 function addRoleDB(guild_id, role) {
@@ -145,20 +145,26 @@ async function makeRole(guild, hex, reason) {
 }
 
 exports.requestNewRole = async (guild, hex, reason = "New color role requested") => {
+	//Find role in databse
 	let role = getHex.get({guild_id: guild.id, hex_value: hex});
-	console.log("1:", role);
 	if (role !== undefined) {
-		role = guild.roles.resolve(role.role_id);
-		console.log("2:", role)
+		//If exists, resolve to actual role
+		let roleID = role.role_id;
+		role = guild.roles.resolve(roleID);
 		if (role !== undefined) return role;
+		// If it isn't an actual role, remove from database
+		delRole.run({guild_id: guild.id, role_id: roleID})
 	}
 
+	//Find it among actual roles
 	role = guild.roles.cache.find(role => role.name === hex);
 	if (role !== undefined) {
+		//Add to databse if found
 		addRoleDB(guild.id, role);
 		return role;
 	}
 
+	//Make new role if not found
 	return await makeRole(guild, hex, reason);
 }
 
@@ -330,7 +336,6 @@ client.once('ready', async () => {
 		let iString = i.toString(16).toUpperCase();
 		await exports.requestNewRole(guild, `#FF${iString}${iString}00`, reason);
 	}
-	await sleep(1000);
 	client.destroy();
 
 	// const {performance} = require('perf_hooks');
