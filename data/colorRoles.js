@@ -160,16 +160,18 @@ async function makeRole(guild, hex, reason) {
 	return newRole;
 }
 
-exports.requestNewRole = async (guild, hex, reason = "New color role requested") => {
+exports.requestNewRole = async (guild, hex, threshhold = 0.1, reason = "New color role requested") => {
 	//Find role in databse
-	let role = getHex.get({guild_id: guild.id, hex_value: hex});
+	let { role, deltaE } = findClosest(guild.id, colorSpace.hex2lab(hex));
+	if (deltaE > threshhold) role = undefined; //Discard it if it's not close enough
 	if (role !== undefined) {
 		//If exists, resolve to actual role
-		let roleID = role.role_id;
+		let roleID = role[0];
 		role = guild.roles.resolve(roleID);
-		if (role !== undefined) return role;
-		// If it isn't an actual role, remove from database
-		delRole.run({guild_id: guild.id, role_id: roleID})
+		if (role !== null && role !== undefined) return role;
+		// If it isn't an actual role, remove from database and try again
+		delRole.run({guild_id: guild.id, role_id: roleID});
+		return await this.requestNewRole(guild, hex, threshhold, reason);
 	}
 
 	//Find it among actual roles
@@ -316,27 +318,27 @@ client.once('ready', async () => {
 	let reason = "Testing the colorRoles Database"
 	for (let i = 0; i < 16; i++) {
 		let iString = i.toString(16).toUpperCase();
-		await exports.requestNewRole(guild, `#FF00${iString}${iString}`, reason);
+		await exports.requestNewRole(guild, `#FF00${iString}${iString}`, 0.1, reason);
 	}
 	for (let i = 14; i > 0; i--) {
 		let iString = i.toString(16).toUpperCase();
-		await exports.requestNewRole(guild, `#${iString}${iString}00FF`, reason);
+		await exports.requestNewRole(guild, `#${iString}${iString}00FF`, 0.1, reason);
 	}
 	for (let i = 0; i < 16; i++) {
 		let iString = i.toString(16).toUpperCase();
-		await exports.requestNewRole(guild, `#00${iString}${iString}FF`, reason);
+		await exports.requestNewRole(guild, `#00${iString}${iString}FF`, 0.1, reason);
 	}
 	for (let i = 14; i > 0; i--) {
 		let iString = i.toString(16).toUpperCase();
-		await exports.requestNewRole(guild, `#00FF${iString}${iString}`, reason);
+		await exports.requestNewRole(guild, `#00FF${iString}${iString}`, 0.1, reason);
 	}
 	for (let i = 0; i < 16; i++) {
 		let iString = i.toString(16).toUpperCase();
-		await exports.requestNewRole(guild, `#${iString}${iString}FF00`, reason);
+		await exports.requestNewRole(guild, `#${iString}${iString}FF00`, 0.1, reason);
 	}
 	for (let i = 14; i > 0; i--) {
 		let iString = i.toString(16).toUpperCase();
-		await exports.requestNewRole(guild, `#FF${iString}${iString}00`, reason);
+		await exports.requestNewRole(guild, `#FF${iString}${iString}00`, 0.1, reason);
 	}
 	client.destroy();
 
