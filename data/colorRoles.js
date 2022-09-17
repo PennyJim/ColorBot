@@ -160,10 +160,10 @@ async function makeRole(guild, hex, reason) {
 	return newRole;
 }
 
-exports.requestNewRole = async (guild, hex, threshhold = 0.1, reason = "New color role requested") => {
+exports.requestNewRole = async (guild, hex, threshold = 0.1, reason = "New color role requested") => {
 	//Find role in databse
 	let { role, deltaE } = findClosest(guild.id, colorSpace.hex2lab(hex));
-	if (deltaE > threshhold) role = undefined; //Discard it if it's not close enough
+	if (deltaE > threshold) role = undefined; //Discard it if it's not close enough
 	if (role !== undefined) {
 		//If exists, resolve to actual role
 		let roleID = role[0];
@@ -171,7 +171,7 @@ exports.requestNewRole = async (guild, hex, threshhold = 0.1, reason = "New colo
 		if (role !== null && role !== undefined) return role;
 		// If it isn't an actual role, remove from database and try again
 		delRole.run({guild_id: guild.id, role_id: roleID});
-		return await this.requestNewRole(guild, hex, threshhold, reason);
+		return await this.requestNewRole(guild, hex, threshold, reason);
 	}
 
 	//Find it among actual roles
@@ -314,34 +314,34 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
 client.once('ready', async () => {
 	await exports.setup(client);
 	let guild = await client.guilds.fetch("770338797543096381");
-	console.log(getHex.get({guild_id: guild.id, hex_value: "#ABCDEF"}));
+	console.log(getHex.get({guild_id: guild.id, hex_value: "#008080"}));
 	let reason = "Testing the colorRoles Database"
-	for (let i = 0; i < 16; i++) {
-		let iString = i.toString(16).toUpperCase();
-		await exports.requestNewRole(guild, `#FF00${iString}${iString}`, 0.1, reason);
+	let threshold = 5
+	let roles = [
+		"#E6E6FA",
+		"#693269",
+		"#FF91A4",
+		"#E65589",
+		"#3872A3",
+		"#EA5459",
+		"#69FF23",
+		"#5275D1",
+		"#98687E",
+		"#FFC0CB",
+		"#FF0800",
+		"#00008B",
+		"#55F1FF",
+		"#EAA225"
+	]
+	for (const role of roles) {
+		exports.requestNewRole(guild, role, threshold, reason);
 	}
-	for (let i = 14; i > 0; i--) {
-		let iString = i.toString(16).toUpperCase();
-		await exports.requestNewRole(guild, `#${iString}${iString}00FF`, 0.1, reason);
-	}
-	for (let i = 0; i < 16; i++) {
-		let iString = i.toString(16).toUpperCase();
-		await exports.requestNewRole(guild, `#00${iString}${iString}FF`, 0.1, reason);
-	}
-	for (let i = 14; i > 0; i--) {
-		let iString = i.toString(16).toUpperCase();
-		await exports.requestNewRole(guild, `#00FF${iString}${iString}`, 0.1, reason);
-	}
-	for (let i = 0; i < 16; i++) {
-		let iString = i.toString(16).toUpperCase();
-		await exports.requestNewRole(guild, `#${iString}${iString}FF00`, 0.1, reason);
-	}
-	for (let i = 14; i > 0; i--) {
-		let iString = i.toString(16).toUpperCase();
-		await exports.requestNewRole(guild, `#FF${iString}${iString}00`, 0.1, reason);
-	}
-	client.destroy();
 
+	console.log(colorSpace.hexDeltaE("#0000FF", "#0011FF"));
+	console.log(colorSpace.hexDeltaE("#FFBB00", "#FF9900"));
+
+
+	client.destroy();
 	exports.close();
 });
 
