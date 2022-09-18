@@ -1,4 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const colorRoles = require('../data/colorRoles.js');
 const settings = require('../data/settings.js');
 const logger = require("../logger.js");
 const chalk  = require('chalk');
@@ -87,6 +88,7 @@ exports.slashrun = async (client, interaction) => {
         logger.debug(interaction.guild, interaction.member, "LAB:", colorSpace.hex2lab(hex))
 
         //Check against banned colors
+        //TODO: Move it to within colorRoles.js
         let bannedColors = settings.getBannedColors(interaction.guildId);
         for (const banned of bannedColors) {
             if (colorSpace.labDeltaE(lab, banned) <= banned[3]) {
@@ -97,20 +99,20 @@ exports.slashrun = async (client, interaction) => {
 
         
         //Look for the role to apply, or make it
-        //TODO: check to see if it's 'too close' to a pre-existing color and choose that instead
-        newRole = roles.cache.find(r => r.name == hex && r.comparePositionTo(highestBotRole) < 0);
-        if (newRole === undefined) {
-            newRole = await roles.create({
-                name: hex,
-                color: hex,
-                mentionable: false,
-                hoist: false,
-                position: botRole.position,
-                permissions: [],
-                reason: "New color role needed"
-            })
-        }
+        // newRole = roles.cache.find(r => r.name == hex && r.comparePositionTo(highestBotRole) < 0);
+        // if (newRole === undefined) {
+        //     newRole = await roles.create({
+        //         name: hex,
+        //         color: hex,
+        //         mentionable: false,
+        //         hoist: false,
+        //         position: botRole.position,
+        //         permissions: [],
+        //         reason: "New color role needed"
+        //     })
+        // }
 
+        newRole = await colorRoles.requestNewRole(interaction.guild, hex, settings.getColorThreshold(interaction.guildId))
         await interaction.member.roles.add(newRole, "Replacing this member's color role");
     }
 

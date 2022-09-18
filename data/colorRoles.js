@@ -112,7 +112,7 @@ function findClosest(guildid, lab) {
 	let closestDeltaE = colorSpace.labDeltaE(lab, roles[closestIndex].slice(-3))
 	for (let i = 1; i < roles.length; i++) {
 		if (closestDeltaE < 0.1) { return {role: roles[closestIndex], deltaE: closestDeltaE}; }
-		let newDeltaE = colorSpace.labDeltaE(lab, roles[i].slice(-3));
+		let newDeltaE = colorSpace.labDeltaE(lab, roles[i].slice(-4));
 		if (newDeltaE < closestDeltaE) {
 			closestIndex = i;
 			closestDeltaE = newDeltaE;
@@ -201,7 +201,7 @@ exports.requestNewRole = async (guild, hex, threshold = 0.1, reason = "New color
 	if (role !== undefined) {
 		//If exists, resolve to actual role
 		let roleID = role[0];
-		role = guild.roles.resolve(roleID);
+		role = await guild.roles.resolve(roleID);
 		if (role !== null && role !== undefined) return role;
 		// If it isn't an actual role, remove from database and try again
 		delRole.run({guild_id: guild.id, role_id: roleID});
@@ -341,60 +341,60 @@ exports.close = () => {
 // console.log(getRole.get({guild_id: "123456789123456789", role_id: "123456789123456789"}));
 
 
-const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay));
-require('dotenv').config()
-const { Client, Intents, Collection } = require('discord.js');
-const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGES] });
-client.once('ready', async () => {
-	await exports.setup(client);
-	let guild = await client.guilds.fetch("770338797543096381");
-	console.log(getHex.get({guild_id: guild.id, hex_value: "#008080"}));
-	let reason = "Testing the colorRoles Database"
-	let threshold = 5
-	let roles = [
-		"#E6E6FA",
-		"#693269",
-		"#FF91A4",
-		"#E65589",
-		"#3872A3",
-		"#EA5459",
-		"#69FF23",
-		"#5275D1",
-		"#98687E",
-		"#FFC0CB",
-		"#FF0800",
-		"#00008B",
-		"#55F1FF",
-		"#EAA225"
-	]
-	for (const role of roles) {
-		exports.requestNewRole(guild, role, threshold, reason);
-	}
+// const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay));
+// require('dotenv').config()
+// const { Client, Intents, Collection } = require('discord.js');
+// const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGES] });
+// client.once('ready', async () => {
+// 	await exports.setup(client);
+// 	let guild = await client.guilds.fetch("770338797543096381");
+// 	console.log(getHex.get({guild_id: guild.id, hex_value: "#008080"}));
+// 	let reason = "Testing the colorRoles Database"
+// 	let threshold = 5
+// 	let roles = [
+// 		"#E6E6FA",
+// 		"#693269",
+// 		"#FF91A4",
+// 		"#E65589",
+// 		"#3872A3",
+// 		"#EA5459",
+// 		"#69FF23",
+// 		"#5275D1",
+// 		"#98687E",
+// 		"#FFC0CB",
+// 		"#FF0800",
+// 		"#00008B",
+// 		"#55F1FF",
+// 		"#EAA225"
+// 	]
+// 	// for (const role of roles) {
+// 	// 	console.log(`returned role: ${await exports.requestNewRole(guild, role, threshold, reason)}`);
+// 	// }
 
-	console.log(colorSpace.hexDeltaE("#0000FF", "#0011FF"));
-	console.log(colorSpace.hexDeltaE("#FFBB00", "#FF9900"));
+// 	console.log(colorSpace.hexDeltaE("#0000FF", "#0011FF"));
+// 	console.log(colorSpace.hexDeltaE("#FFBB00", "#FF9900"));
 
 
-	client.destroy();
-	exports.close();
-});
+// 	client.destroy();
+// 	exports.close();
+// });
 
-client.on('rateLimit', (info) => {
-	let hour, min, sec;
-	if (info.timeout) {
-		sec = info.timeout / 1000
-		if (sec > 60) {
-			min = Math.floor(sec / 60);
-			sec = sec % 60
-			if (min > 60) {
-				hour =  Math.floor(min / 60)
-				min = min % 60
-			}
-		}
-	}
-	console.log(`${info.global ? 'Global ' : ''}Rate limit hit, \n\t` +
-	`Timeout: ${hour ? `${hour}h ` : ''}${min ? `${min}m ` : ''}${sec.toFixed(3)}s\n\t` +
-	`Limit: ${info.limit}`);
-})
-client.login(process.env.TOKEN);
+// client.on('rateLimit', (info) => {
+// 	let hour, min, sec;
+// 	if (info.timeout) {
+// 		sec = info.timeout / 1000
+// 		if (sec > 60) {
+// 			min = Math.floor(sec / 60);
+// 			sec = sec % 60
+// 			if (min > 60) {
+// 				hour =  Math.floor(min / 60)
+// 				min = min % 60
+// 			}
+// 		}
+// 	}
+// 	console.log(`${info.global ? 'Global ' : ''}Rate limit hit, \n\t` +
+// 	`Timeout: ${hour ? `${hour}h ` : ''}${min ? `${min}m ` : ''}${sec.toFixed(3)}s\n\t` +
+// 	`Limit: ${info.limit}`);
+// })
+// client.login(process.env.TOKEN);
 // #endregion

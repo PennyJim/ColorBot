@@ -38,6 +38,7 @@ process.on("SIGTERM", closeFunc);
 process.on("SIGINT", closeFunc);
 
 client.once('ready', () => {
+    colorRoles.setup(client);
     logger.log(null, null, "Ready");
 })
 
