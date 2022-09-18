@@ -1,16 +1,6 @@
-Make a colorrole manager
-    Stop #000000 and #000001 from making a new role with a buffer
-        Make a new database for roles
-            RoleId pk
-            GuildId fk
-            Hex
-            L
-            A
-            B
-        Periodically bring the database up to date with role list
-        Add a config that determines the buffer size
-    Try to optimize *this* step
-        Learn the fastest way to do this buffer shit...
+colorRole.js
+    Try to optimize buffer step
+    Move banned colors into colorRole.js
 Finish the config commands
     Implement config get
 Make databases automatically brought up to date if they have to change structure
