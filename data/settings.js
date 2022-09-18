@@ -31,6 +31,10 @@ db.prepare(`
         PRIMARY KEY (guild_id)
     ) WITHOUT ROWID
 `).run();
+// db.prepare(`
+// ALTER TABLE guilds
+// ADD COLUMN color_threshold REAL
+// `).run();
 //Make sure banned_colors exists
 db.prepare(`
     CREATE TABLE IF NOT EXISTS banned_colors (

@@ -175,21 +175,15 @@ function addRoleDB(guild_id, role) {
 }
 
 async function makeRole(guild, hex, reason) {
-	// let newRole = await guild.roles.create({
-	// 	name: hex,
-	// 	color: hex,
-	// 	mentionable: false,
-	// 	hoist: false,
-	// 	position: guild.roles.botRoleFor(guild.client.user).position,
-	// 	permissions: [],
-	// 	reason: reason
-	// });
-
-	// For testing without *actual* roles
-	let newRole = {
-		id: parseInt(hex.slice(1), 16).toString().padStart(18, "0"),
-	 name: hex
-	}
+	let newRole = await guild.roles.create({
+		name: hex,
+		color: hex,
+		mentionable: false,
+		hoist: false,
+		position: guild.roles.botRoleFor(guild.client.user).position,
+		permissions: [],
+		reason: reason
+	});
 	addRoleDB(guild.id, newRole);
 	return newRole;
 }
