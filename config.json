@@ -7,6 +7,7 @@
         "guild_id": "Default",
         "minrole": null,
         "maxroles": 50,
+        "color_threshold": 10,
         "can_admin_config": 1
     },
     "ratelimits": {

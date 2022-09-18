@@ -34,6 +34,13 @@ exports.slashrun = async (client, interaction) => {
                 settings.setMaxRoles(interaction.guildId, newValue);
                 updated.push("maxroles");
             }
+            //Update colorthreshold if given
+            if (newValue = interaction.options.get("colorthreshold")) {
+                newValue = newValue.value;
+                logger.debug(interaction.guild, interaction.member, "new maxroles:", newValue);
+                settings.setColorThreshold(interaction.guildId, newValue);
+                updated.push("colorthreshold");
+            }
             //Update adminconfig if given
             if (newValue = interaction.options.get("adminconfig") && interaction.member.id == interaction.guild.ownerId) {
                 newValue = newValue.value;
@@ -43,17 +50,17 @@ exports.slashrun = async (client, interaction) => {
             }
 
             //Respond with what has been updated (gramatically correct w/ oxford comma)
+            let changed;
             if (updated.length > 1) {
                 let last = updated.pop();
-                logger.log(interaction.guild, interaction.member, `Updated ${updated.join(', ')}${updated.length > 1 ? "," : ""} and`, last);
-                return interaction.reply({content: `Updated \`${updated.join('`, `')}\`${updated.length > 1 ? "," : ""} and \`${last}\`.`, ephemeral: true});
+                changed = `\`${updated.join('`, `')}\`${updated.length > 1 ? "," : ""} and \`${last}\``
             } else if (updated.length == 1) {
-                logger.log(interaction.guild, interaction.member, "Updated", updated[0]);
-                return interaction.reply({content: `Updated \`${updated[0]}\`.`, ephemeral: true});
+                changed = `\`${updated[0]}\``
             } else {
-                logger.log(interaction.guild, interaction.member, "Updated nothing");
-                return interaction.reply({content: `Updated nothing.`, ephemeral: true});
+                changed = "nothing"
             }
+            logger.log(interaction.guild, interaction.member, `Updated ${changed}`);
+            return interaction.reply({content: `Updated ${changed}.`, ephemeral: true});
             break;
         case 'get':
             //TODO: implement config get
@@ -99,6 +106,9 @@ exports.generateCommand = (isTest = false) => {
                         .setName("maxroles")
                         .setDescription("The ammount of roles ColorBot can create")
                     )
+                    .addNumberOption(option => option
+                        .setName("colorthreshold")
+                        .setDescription("The threshold it takes for a color to be deemed different enough for a new role"))
                     .addBooleanOption(option => option
                         .setName("adminconfig")
                         .setDescription("Can administrators change the config?")

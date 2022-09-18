@@ -26,6 +26,7 @@ db.prepare(`
         guild_id CHARACTER(18) NOT NULL,
         minrole CHARACTER(18),
         maxroles INT,
+        color_threshold REAL,
         can_admin_config BOOLEAN,
         PRIMARY KEY (guild_id)
     ) WITHOUT ROWID
@@ -51,6 +52,7 @@ const addGuild = db.prepare(`
         $guild_id,
         $minrole,
         $maxroles,
+        $color_threshold,
         $can_admin_config
     )
 `)
@@ -82,6 +84,7 @@ else {
             SET
                 minrole = $minrole,
                 maxroles = $maxroles,
+                color_threshold = $color_threshold,
                 can_admin_config = $can_admin_config
             WHERE
                 guild_id = $guild_id
@@ -131,6 +134,13 @@ exports.getMaxRoles = (guild_id) => {
     let guild = checkCache(guild_id);
 
     return guild.maxroles;
+}
+exports.getColorThreshold = (guild_id) => {
+    //Allow you to pass a GuildManager object
+    if (guild_id.id !== undefined) guild_id = guild_id.id;
+    let guild = checkCache(guild_id);
+
+    return guild.banned_threshold;
 }
 exports.getCanAdminConfig = (guild_id) => {
     //Allow you to pass a GuildManager object
@@ -190,6 +200,21 @@ exports.setDefaultMaxRoles = (newValue) => {
 }
 exports.setMaxRoles = (guild_id, newValue) => {
     return setValue(guild_id, newValue, setMaxRoles, "maxroles");
+}
+
+const setColorThreshold = db.prepare(`
+UPDATE
+    guilds
+SET
+    color_threshold = $new_value
+WHERE
+    guild_id = $guild_id
+`)
+exports.setDefaultColorThreshold = (newValue) => {
+    return setDefaultValue(newValue, setColorThreshold);
+}
+exports.setColorThreshold = (guild_id, newValue) => {
+    return setValue(guild_id, newValue, setColorThreshold, "color_threshold");
 }
 
 const setCanAdminConfig = db.prepare(`
