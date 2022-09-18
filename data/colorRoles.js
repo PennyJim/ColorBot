@@ -109,7 +109,7 @@ WHERE
 function findClosest(guildid, lab) {
 	let roles = getRoles.all({guild_id: guildid})
 	let closestIndex = 0;
-	let closestDeltaE = colorSpace.labDeltaE(lab, roles[closestIndex].slice(-3))
+	let closestDeltaE = colorSpace.labDeltaE(lab, roles[closestIndex].slice(-4))
 	for (let i = 1; i < roles.length; i++) {
 		if (closestDeltaE < 0.1) { return {role: roles[closestIndex], deltaE: closestDeltaE}; }
 		let newDeltaE = colorSpace.labDeltaE(lab, roles[i].slice(-4));
@@ -196,22 +196,30 @@ exports.requestNewRole = async (guild, hex, threshold = 0.1, reason = "New color
 		//If exists, resolve to actual role
 		let roleID = role[0];
 		role = await guild.roles.resolve(roleID);
-		if (role !== null && role !== undefined) return role;
+		if (role !== null && role !== undefined) {
+			role.isNew = false;
+			role.lowestDeltaE = deltaE;
+			return role
+		}
 		// If it isn't an actual role, remove from database and try again
 		delRole.run({guild_id: guild.id, role_id: roleID});
 		return await this.requestNewRole(guild, hex, threshold, reason);
 	}
 
-	//Find it among actual roles
-	role = guild.roles.cache.find(role => role.name === hex);
-	if (role !== undefined) {
-		//Add to databse if found
-		addRoleDB(guild.id, role);
-		return role;
-	}
+	//Should not need to do.
+	// //Find it among actual roles
+	// role = guild.roles.cache.find(role => role.name === hex);
+	// if (role !== undefined) {
+	// 	//Add to databse if found
+	// 	addRoleDB(guild.id, role);
+	// 	return role;
+	// }
 
 	//Make new role if not found
-	return await makeRole(guild, hex, reason);
+	role = await makeRole(guild, hex, reason);
+	role.lowestDeltaE = deltaE;
+	role.isNew = true;
+	return role;
 }
 
 exports.close = () => {

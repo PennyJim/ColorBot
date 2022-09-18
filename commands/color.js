@@ -113,6 +113,7 @@ exports.slashrun = async (client, interaction) => {
         // }
 
         newRole = await colorRoles.requestNewRole(interaction.guild, hex, settings.getColorThreshold(interaction.guildId))
+        logger.debug(interaction.guild, interaction.member, `Lowest ${newRole.isNew ? "ignored " : ""}deltaE: ${newRole.lowestDeltaE}`);
         await interaction.member.roles.add(newRole, "Replacing this member's color role");
     }
 
