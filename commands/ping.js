@@ -6,7 +6,7 @@ exports.msgrun = async (client, message, args) => {
 }
 
 exports.slashrun = async (client, interaction) => {
-    interaction.reply({content: "My ping is \`" + client.ws.ping + " ms\`", ephemeral: true});
+    interaction.editReply({content: "My ping is \`" + client.ws.ping + " ms\`", ephemeral: true});
 }
 
 exports.help = {

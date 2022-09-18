@@ -11,10 +11,10 @@ exports.msgrun = async (client, message, args) => {
 
 exports.slashrun = async (client, interaction) => {
     if (!interaction.inGuild())
-        return interaction.reply({content: "This only works in guilds", ephemeral: true});
+        return interaction.editReply({content: "This only works in guilds", ephemeral: true});
     if (interaction.member.id !== interaction.guild.ownerId &&
         !(settings.getCanAdminConfig(interaction.guild.id) && interaction.memberPermissions.has("ADMINISTRATOR")))
-        return interaction.reply({content: "You do not have permission to do this", ephemeral: true});
+        return interaction.editReply({content: "You do not have permission to do this", ephemeral: true});
 
 
     let guildId = interaction.guildId;
@@ -54,7 +54,7 @@ exports.slashrun = async (client, interaction) => {
                 }
                 else {
                     logger.warn(interaction.guild, interaction.member, `${temp_hex} is not a valid color`)
-                    return interaction.reply({content: `${temp_hex} is not a valid color`, ephemeral: true});
+                    return interaction.editReply({content: `${temp_hex} is not a valid color`, ephemeral: true});
                 }
                 break;
             case "named":
@@ -64,12 +64,12 @@ exports.slashrun = async (client, interaction) => {
                     hex = tempColor.hex;
                     lab = colorSpace.hex2lab(hex);
                 } else {
-                    return interaction.reply({content: `The color "${newColor}" is not a valid named html color`, ephemeral: true});
+                    return interaction.editReply({content: `The color "${newColor}" is not a valid named html color`, ephemeral: true});
                 }
                 break;
             default:
                 logger.err(interaction.guild, interaction.member, `Subcommand "${options.getSubcommand(false)}" is not implemented.`);
-                return interaction.reply({content: `Subcommand "${options.getSubcommand(false)}" is not implemented.`, ephemeral: true});
+                return interaction.editReply({content: `Subcommand "${options.getSubcommand(false)}" is not implemented.`, ephemeral: true});
         }
     } else if (options.getSubcommand(false) == "list") {
         //List banned colors
@@ -78,7 +78,7 @@ exports.slashrun = async (client, interaction) => {
         for (const color of bannedColors) {
             bannedList += `\n\`${color[5]}\`:\`${color[4]}\` - \`${color[3]}\``;
         }
-        return interaction.reply({content: bannedList, ephemeral: true});
+        return interaction.editReply({content: bannedList, ephemeral: true});
     }
 
     //Get and clamp the threshold to between 50 and 1
@@ -90,7 +90,7 @@ exports.slashrun = async (client, interaction) => {
         //Get index and resolve that it's valid for the guild
         let index = options.getInteger("index", true); //Throw error if no index
         let bannedColor = settings.getBannedColor(guildId, index);
-        if (bannedColor === undefined) return interaction.reply({
+        if (bannedColor === undefined) return interaction.editReply({
             content: `${index} is not a valid Id. Use \`/${exports.help.name} list\` to list the Id's.`, 
             ephemeral: true
         });
@@ -98,12 +98,12 @@ exports.slashrun = async (client, interaction) => {
         if (threshold) { //Update threshold if one is given
             settings.setBannedThreshold(guildId, index, threshold);
             logger.log(interaction.guild, interaction.member, `${index}:${chalk.hex(hex)(hex)} has been updated`);
-            return interaction.reply({content: `Set \`${index}\`:\`${hex}\`'s threshold to \`${threshold}\`.`, ephemeral: true});
+            return interaction.editReply({content: `Set \`${index}\`:\`${hex}\`'s threshold to \`${threshold}\`.`, ephemeral: true});
         }
         //Remove the banned color if threshold isn't given (or is 0)
         settings.removeBannedColor(guildId, index);
         logger.log(interaction.guild, interaction.member, `${index}:${chalk.hex(hex)(hex)} has been deleted`);
-        return interaction.reply({content: `Removed \`${index}\`:\`${hex}\`.`, ephemeral: true});
+        return interaction.editReply({content: `Removed \`${index}\`:\`${hex}\`.`, ephemeral: true});
     } catch (err) {
         if (err.name != "TypeError [COMMAND_INTERACTION_OPTION_NOT_FOUND]") throw err;
         if (!threshold) threshold = 1;
@@ -111,7 +111,7 @@ exports.slashrun = async (client, interaction) => {
         //Add the banned color if no index was given
         let index = settings.addBannedColor(guildId, hex, lab, threshold).lastInsertRowid;
         logger.log(interaction.guild, interaction.member, `${index}:${chalk.hex(hex)(hex)} has been added`);
-        return interaction.reply({content: `Added \`${index}\`:\`${hex}\` to the banned colors with a threshold of \`${threshold}\`.`, ephemeral: true})
+        return interaction.editReply({content: `Added \`${index}\`:\`${hex}\` to the banned colors with a threshold of \`${threshold}\`.`, ephemeral: true})
     }
 }
 

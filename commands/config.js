@@ -8,10 +8,10 @@ exports.msgrun = async (client, message, args) => {
 
 exports.slashrun = async (client, interaction) => {
     if (!interaction.inGuild())
-        return interaction.reply({content: "This only works in guilds", ephemeral: true});
+        return interaction.editReply({content: "This only works in guilds", ephemeral: true});
     if (interaction.member.id !== interaction.guild.ownerId &&
         !(settings.getCanAdminConfig(interaction.guild.id) && interaction.memberPermissions.has("ADMINISTRATOR")))
-        return interaction.reply({content: "You do not have permission to do this", ephemeral: true});
+        return interaction.editReply({content: "You do not have permission to do this", ephemeral: true});
 
     logger.debug(interaction.guild, interaction.member, "Subcommand:", interaction.options.getSubcommand(false))
     logger.debug(interaction.guild, interaction.member, "Options:", interaction.options)
@@ -60,17 +60,17 @@ exports.slashrun = async (client, interaction) => {
                 changed = "nothing"
             }
             logger.log(interaction.guild, interaction.member, `Updated ${changed}`);
-            return interaction.reply({content: `Updated ${changed}.`, ephemeral: true});
+            return interaction.editReply({content: `Updated ${changed}.`, ephemeral: true});
             break;
         case 'get':
             //TODO: implement config get
             break;
         default:
             logger.err(interaction.guild, interaction.member, `Subcommand "${options.getSubcommand(false)}" is not implemented.`);
-            return interaction.reply({content: `Subcommand "${options.getSubcommand(false)}" is not implemented.`, ephemeral: true});
+            return interaction.editReply({content: `Subcommand "${options.getSubcommand(false)}" is not implemented.`, ephemeral: true});
     }
 
-    interaction.reply({content: "My ping is \`" + client.ws.ping + " ms\`", ephemeral: true});
+    interaction.editReply({content: "My ping is \`" + client.ws.ping + " ms\`", ephemeral: true});
 }
 
 exports.help = {

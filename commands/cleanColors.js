@@ -22,7 +22,7 @@ exports.msgrun = async (client, message, args) => {
     if (!message.inGuild()) 
         return message.reply({content: "This only works in guilds", ephemeral: true});
     if (!message.member.permissions.has("MANAGE_ROLES"))
-        return interaction.reply({content: "You do not have permission to do this", ephemeral: true});
+        return interaction.editReply({content: "You do not have permission to do this", ephemeral: true});
 
     let count = await this.run(client, message.guild)
     message.reply({content: `${count} colors have been cleaned up`, ephemeral: true});
@@ -30,12 +30,12 @@ exports.msgrun = async (client, message, args) => {
 
 exports.slashrun = async (client, interaction) => {
     if (!interaction.inGuild())
-        return interaction.reply({content: "This only works in guilds", ephemeral: true});
+        return interaction.editReply({content: "This only works in guilds", ephemeral: true});
     if (!interaction.member.permissions.has("MANAGE_ROLES"))
-        return interaction.reply({content: "You do not have permission to do this", ephemeral: true});
+        return interaction.editReply({content: "You do not have permission to do this", ephemeral: true});
 
     let count = await this.run(client, interaction.guild)
-    interaction.reply({content: `${count} colors have been cleaned up`, ephemeral: true});
+    interaction.editReply({content: `${count} colors have been cleaned up`, ephemeral: true});
 }
 
 

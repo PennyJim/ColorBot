@@ -15,9 +15,9 @@ exports.msgrun = async (client, message, args) => {
 
 exports.slashrun = async (client, interaction) => {
     if(!interaction.inGuild())
-        return interaction.reply({content: "Has to be called in a server", ephemeral: true});
+        return interaction.editReply({content: "Has to be called in a server", ephemeral: true});
     if(interaction.member.roles.highest.comparePositionTo(settings.getMinRole(interaction.guildId)) < 0)
-        return interaction.reply({content: "You do not have permission to do this", ephemeral: true});
+        return interaction.editReply({content: "You do not have permission to do this", ephemeral: true});
 
     let roles = interaction.guild.roles;
     let botRole = roles.botRoleFor(client.user);
@@ -58,7 +58,7 @@ exports.slashrun = async (client, interaction) => {
             }
             else {
                 logger.warn(interaction.guild, interaction.member, `${temp_hex} is not a valid color`)
-                return interaction.reply({content: `${temp_hex} is not a valid color`, ephemeral: true});
+                return interaction.editReply({content: `${temp_hex} is not a valid color`, ephemeral: true});
             }
             break;
         case "named":
@@ -68,7 +68,7 @@ exports.slashrun = async (client, interaction) => {
                 hex = tempColor.hex;
                 lab = colorSpace.hex2lab(hex);
             } else {
-                return interaction.reply({content: `The color "${newColor}" is not a valid named html color`, ephemeral: true});
+                return interaction.editReply({content: `The color "${newColor}" is not a valid named html color`, ephemeral: true});
             }
             break;
         case "reset":
@@ -76,7 +76,7 @@ exports.slashrun = async (client, interaction) => {
             break;
         default:
             logger.err(interaction.guild, interaction.member, `Subcommand "${options.getSubcommand(false)}" is not implemented.`);
-            return interaction.reply({content: `Subcommand "${options.getSubcommand(false)}" is not implemented.`, ephemeral: true});
+            return interaction.editReply({content: `Subcommand "${options.getSubcommand(false)}" is not implemented.`, ephemeral: true});
     }
     hex = hex.toUpperCase();
 
@@ -91,7 +91,7 @@ exports.slashrun = async (client, interaction) => {
         for (const banned of bannedColors) {
             if (colorSpace.labDeltaE(lab, banned) <= banned[3]) {
                 logger.warn(interaction.guild, interaction.member, "Too close to a banned color");
-                return await interaction.reply({content: `Too close to the banned color ${banned[4]}`, ephemeral: true});
+                return await interaction.editReply({content: `Too close to the banned color ${banned[4]}`, ephemeral: true});
             }
         }
 
@@ -129,9 +129,9 @@ exports.slashrun = async (client, interaction) => {
     });
     
     if (!skipAssign) {
-        await interaction.reply({content: `Your color has been changed to \`${newColor}\`: <@&${newRole.id}>`, ephemeral: true})
+        await interaction.editReply({content: `Your color has been changed to \`${newColor}\`: <@&${newRole.id}>`, ephemeral: true})
     } else {
-        await interaction.reply({content: "Your color has been reset", ephemeral: true});
+        await interaction.editReply({content: "Your color has been reset", ephemeral: true});
     }
 
     logger.log(interaction.guild, interaction.member, `Color changed to`, chalk.hex(hex)(hex));
