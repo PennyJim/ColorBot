@@ -102,7 +102,7 @@ function newGuild(guild) {
     let defaultGuild = getGuild.get({ guild_id: defaultID })
     if (guild.minrole === undefined) {guild.minrole = guild.guild_id}
     if (guild.maxroles === undefined) {guild.maxroles = defaultGuild.maxroles}
-    if (guild.threshhold === undefined) {guild.threshhold = defaultGuild.threshhold}
+    if (guild.color_threshhold === undefined) {guild.color_threshhold = defaultGuild.color_threshhold}
     if (guild.can_admin_config === undefined) {guild.can_admin_config = defaultGuild.can_admin_config}
     addGuild.run(guild);
 }
