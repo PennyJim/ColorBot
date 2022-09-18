@@ -140,7 +140,7 @@ exports.getColorThreshold = (guild_id) => {
     if (guild_id.id !== undefined) guild_id = guild_id.id;
     let guild = checkCache(guild_id);
 
-    return guild.banned_threshold;
+    return guild.color_threshold;
 }
 exports.getCanAdminConfig = (guild_id) => {
     //Allow you to pass a GuildManager object

@@ -37,7 +37,7 @@ exports.slashrun = async (client, interaction) => {
             //Update colorthreshold if given
             if (newValue = interaction.options.get("colorthreshold")) {
                 newValue = newValue.value;
-                logger.debug(interaction.guild, interaction.member, "new maxroles:", newValue);
+                logger.debug(interaction.guild, interaction.member, "new colorthreshold:", newValue);
                 settings.setColorThreshold(interaction.guildId, newValue);
                 updated.push("colorthreshold");
             }

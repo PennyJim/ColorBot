@@ -27,3 +27,4 @@ for (const server of testServers) {
         .catch(error => logger.err({id: server}, null, error));
 }
 require("./data/settings").close();
+require("./data/colorRoles.js").close();
