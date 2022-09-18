@@ -9,7 +9,7 @@ const nodeCron = require('node-cron');
 const fs = require('fs');
 require('dotenv').config()
 
-const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGES] });
+const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS] });
 
 client.commands = new Collection();
 
