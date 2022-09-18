@@ -3,6 +3,7 @@ const nodeCron = require('node-cron');
 const { debug } = require('../logger');
 const config = require("../config.json");
 const colorSpace = require('../colorSpace.js');
+let setupClient;
 
 db.pragma('wal_autocheckpoint = 500'); //Since it's read-heavy, smaller allowed wal size
 db.pragma('mmap_size = 30000000000'); //Use memory mapping instead of r/w calls
@@ -11,11 +12,12 @@ let bidaily = nodeCron.schedule('0 0 */12 * * *', () => {
     //Force a checkpoint and then optimize every 12 hours
     db.pragma('wal_checkpoint(truncate)');
     db.pragma('optimize');
+	if (setupClient != undefined) syncRoles();
 });
 
 
 //Drop Table for testing purposes 
-db.prepare(`DROP TABLE IF EXISTS color_roles`).run();
+// db.prepare(`DROP TABLE IF EXISTS color_roles`).run();
 
 //Make sure guilds exists
 db.prepare(`
@@ -26,6 +28,7 @@ db.prepare(`
         l_value REAL NOT NULL,
         a_value REAL NOT NULL,
         b_value REAL NOT NULL,
+		synced BOOLEAN NOT NULL,
         PRIMARY KEY (role_id, guild_id)
     ) WITHOUT ROWID
 `).run();
@@ -37,7 +40,8 @@ const addRole = db.prepare(`
 		hex_value,
 		l_value,
 		a_value,
-		b_value
+		b_value,
+		synced
 	)
 	VALUES (
 		$role_id,
@@ -45,7 +49,8 @@ const addRole = db.prepare(`
 		$hex_value,
 		$l_value,
 		$a_value,
-		$b_value
+		$b_value,
+		FALSE
 	);
 `)
 const delRole = db.prepare(`
@@ -71,7 +76,6 @@ const getRoles = db.prepare(`
 	WHERE
 		guild_id = $guild_id;
 `).raw(true);
-
 const getHex = db.prepare(`
 SELECT
 	*
@@ -81,6 +85,26 @@ WHERE
 	guild_id = $guild_id
 	AND hex_value = $hex_value
 `);
+const syncRole = db.prepare(`
+UPDATE
+	color_roles
+SET
+	synced = TRUE
+WHERE
+	guild_id = $guild_id
+	AND role_id = $role_id
+`)
+const unsyncRoles = db.prepare(`
+UPDATE
+	color_roles
+SET
+	synced = FALSE
+`)
+const delUnsync = db.prepare(`
+DELETE FROM color_roles
+WHERE
+	synced = FALSE
+`)
 
 function findClosest(guildid, lab) {
 	let roles = getRoles.all({guild_id: guildid})
@@ -98,7 +122,7 @@ function findClosest(guildid, lab) {
 }
 
 let hexRegex = /^#[\da-f]{6}$/i;
-exports.setup = async (client) => {
+async function syncRoles(client) {
     let guilds = await client.guilds.fetch();
 	for (let [gid, g] of guilds) {
 		g = await g.fetch();
@@ -123,9 +147,19 @@ exports.setup = async (client) => {
 						b_value: lab[2]
 					});
 				}
+				syncRole.run({
+					role_id: rid,
+					guild_id: gid
+				});
 			}
 		}
 	}
+	delUnsync.run();
+	unsyncRoles.run();
+}
+exports.setup = async (client) => {
+	setupClient = client;
+	await syncRoles(client);
 }
 
 function addRoleDB(guild_id, role) {
