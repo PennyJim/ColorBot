@@ -60,7 +60,7 @@ client.on('messageCreate', async message => {
 });
 
 client.on("interactionCreate", async interaction => {
-    if (!interaction.isCommand()) return;
+    if (!interaction.isCommand()) return logger.error(interaction.guild, interaction.user, "Not a command:", interaction);
 
     try {
         let command = client.commands.get(interaction.commandName);
@@ -81,7 +81,7 @@ client.on("interactionCreate", async interaction => {
             }
             limited = rateLimiter.useLimit(id, command.help.limit);
         }
-        if (limited) return interaction.editReply({content: `You can do this again: <t:${limited}:R>`, ephemeral: true});
+        if (limited) return interaction.reply({content: `You can do this again: <t:${limited}:R>`, ephemeral: true});
 
         try {
             await interaction.deferReply({ephemeral: true});
