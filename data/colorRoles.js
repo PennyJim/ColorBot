@@ -12,7 +12,7 @@ let bidaily = nodeCron.schedule('0 0 */12 * * *', () => {
     //Force a checkpoint and then optimize every 12 hours
     db.pragma('wal_checkpoint(truncate)');
     db.pragma('optimize');
-	if (setupClient != undefined) syncRoles();
+	if (setupClient != undefined) syncRoles(setupClient);
 });
 
 
