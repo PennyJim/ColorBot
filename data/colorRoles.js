@@ -108,6 +108,7 @@ WHERE
 
 function findClosest(guildid, lab) {
 	let roles = getRoles.all({guild_id: guildid})
+	if (roles.length == 0) { return {role: undefined, deltaE: 100}}
 	let closestIndex = 0;
 	let closestDeltaE = colorSpace.labDeltaE(lab, roles[closestIndex].slice(-4))
 	for (let i = 1; i < roles.length; i++) {
